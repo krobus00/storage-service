@@ -1,0 +1,36 @@
+env: "development"
+log_level: "info" # info|warm|error
+ports:
+  http: "3001"
+  grpc: "5001"
+database:
+  host: "localhost:5432"
+  database: "storage_service"
+  username: "krobus"
+  password: 'strongpassword'
+  sslmode: "disable"
+  max_idle_conns: 2
+  conn_max_lifetime: "1h"
+  ping_interval: "5s"
+  retry_attempts: 3
+redis:
+  cache_host: "redis://localhost:6379/1"
+  dial_timeout: 5
+  write_timeout: 2
+  read_timeout: 2
+  disable_caching: false
+s3:
+  region: "ap-southeast-1"
+  endpoint: "s3-provider"
+  bucket: "krobot-app"
+  access_key: "xxx"
+  secret_key: "xxxx"
+  sign_duration: "1h"
+file_type_whitelist:
+  - .png
+  - .jpg
+  - .jpeg
+  - .pdf
+services:
+  auth:
+    grpc: "localhost:5000" 
