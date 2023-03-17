@@ -15,7 +15,7 @@ func NewStorageController() *StorageController {
 	return new(StorageController)
 }
 
-func (d *StorageController) Upload(eCtx echo.Context) (err error) {
+func (t *StorageController) Upload(eCtx echo.Context) (err error) {
 	var (
 		ctx = buildContext(eCtx)
 		res = new(model.Response)
@@ -32,7 +32,7 @@ func (d *StorageController) Upload(eCtx echo.Context) (err error) {
 		return err
 	}
 
-	storage, err := d.storageUC.Upload(ctx, &model.FileUploadPayload{
+	storage, err := t.storageUC.Upload(ctx, &model.FileUploadPayload{
 		Src:      req.Src,
 		Filename: req.Filename,
 		IsPublic: req.IsPublic,
@@ -45,11 +45,11 @@ func (d *StorageController) Upload(eCtx echo.Context) (err error) {
 	return eCtx.JSON(http.StatusCreated, res)
 }
 
-func (d *StorageController) GetPresignURL(eCtx echo.Context) (err error) {
+func (t *StorageController) GetPresignURL(eCtx echo.Context) (err error) {
 	var (
 		ctx = buildContext(eCtx)
 		res = new(model.Response)
-		req = new(model.HTTPGetPresignURLRequest)
+		req = new(model.HTTPGetPresignedURLRequest)
 	)
 
 	err = eCtx.Bind(req)
@@ -58,7 +58,7 @@ func (d *StorageController) GetPresignURL(eCtx echo.Context) (err error) {
 		return eCtx.JSON(http.StatusBadRequest, res)
 	}
 
-	storage, err := d.storageUC.GeneratePresignURL(ctx, req.ToPayload())
+	storage, err := t.storageUC.GeneratePresignedURL(ctx, req.ToPayload())
 	if err != nil {
 		return err
 	}

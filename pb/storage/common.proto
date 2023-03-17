@@ -1,0 +1,6 @@
+syntax = "proto3";
+package pb.storage;
+
+option go_package = "pb/storage";
+
+message Empty {}

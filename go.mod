@@ -7,9 +7,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.15
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.30.5
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.0
 	github.com/jpillora/backoff v1.0.0
-	github.com/krobus00/auth-service v0.2.0
+	github.com/krobus00/auth-service v0.2.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/lib/pq v1.10.7
 	github.com/pressly/goose/v3 v3.9.0
@@ -17,6 +18,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.15.0
 	google.golang.org/grpc v1.52.0
+	google.golang.org/protobuf v1.28.1
 	gorm.io/driver/postgres v1.4.8
 	gorm.io/gorm v1.24.6
 )
@@ -60,7 +62,6 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -27,12 +27,7 @@ func (uc *storageUsecase) Upload(ctx context.Context, payload *model.FileUploadP
 		"fileName": payload.Filename,
 		"isPublic": payload.IsPublic,
 	})
-	ctx, err := setUserInfoContext(ctx, uc.authClient)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, err
-	}
-	user, err := getUserInfoFromContext(ctx)
+	userID, err := getUserIDFromCtx(ctx)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -40,7 +35,7 @@ func (uc *storageUsecase) Upload(ctx context.Context, payload *model.FileUploadP
 	newStorage := model.NewStorage().
 		SetID(util.GenerateUUID()).
 		SetSrc(payload.Src).
-		SetUploadedBy(user.GetId()).
+		SetUploadedBy(userID).
 		SetFileName(payload.Filename).
 		SetObjectKey(model.DefaultPath).
 		SetIsPublic(payload.IsPublic)
@@ -53,12 +48,11 @@ func (uc *storageUsecase) Upload(ctx context.Context, payload *model.FileUploadP
 	return newStorage, nil
 }
 
-func (uc *storageUsecase) GeneratePresignURL(ctx context.Context, payload *model.GetPresignURLPayload) (*model.GetPresignURLResponse, error) {
+func (uc *storageUsecase) GeneratePresignedURL(ctx context.Context, payload *model.GetPresignedURLPayload) (*model.GetPresignedURLResponse, error) {
 	logger := log.WithFields(log.Fields{
-		"objectKey": payload.ObjectKey,
+		"objectID": payload.ObjectID,
 	})
-	ctx, _ = setUserInfoContext(ctx, uc.authClient)
-	storage, err := uc.storageRepo.FindByObjectKey(ctx, payload.ObjectKey)
+	storage, err := uc.storageRepo.FindByID(ctx, payload.ObjectID)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -74,7 +68,7 @@ func (uc *storageUsecase) GeneratePresignURL(ctx context.Context, payload *model
 		return nil, err
 	}
 
-	presignObject, err := uc.storageRepo.GeneratePresignURL(ctx, storage)
+	presignObject, err := uc.storageRepo.GeneratePresignedURL(ctx, storage)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -83,23 +77,22 @@ func (uc *storageUsecase) GeneratePresignURL(ctx context.Context, payload *model
 }
 
 func (uc *storageUsecase) hasAccess(ctx context.Context, storage *model.Storage) error {
-	user, _ := getUserInfoFromContext(ctx)
+	userID, err := getUserIDFromCtx(ctx)
+	if err != nil {
+		return err
+	}
 	if storage.IsPublic {
 		return nil
 	}
 	if !storage.IsPublic {
-		if user == nil {
-			return errors.New("user not found")
-		}
-
-		allowAccess, err := HasAccess(ctx, uc.authClient, []string{constant.FULL_ACCESS})
+		allowAccess, err := hasAccess(ctx, uc.authClient, []string{constant.FULL_ACCESS})
 		if err != nil {
 			return err
 		}
 		if allowAccess {
 			return nil
 		}
-		if storage.UploadedBy != user.GetId() {
+		if storage.UploadedBy != userID {
 			return errors.New("unauthorized access")
 		}
 	}

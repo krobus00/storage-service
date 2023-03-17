@@ -8,7 +8,7 @@ import (
 )
 
 func buildContext(eCtx echo.Context) context.Context {
-	token := eCtx.Get(string(constant.KeyTokenCtx))
-	ctx := context.WithValue(eCtx.Request().Context(), constant.KeyTokenCtx, token)
+	userID := eCtx.Get(string(constant.KeyUserIDCtx))
+	ctx := context.WithValue(eCtx.Request().Context(), constant.KeyUserIDCtx, userID)
 	return ctx
 }

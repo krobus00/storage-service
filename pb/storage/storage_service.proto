@@ -1,0 +1,10 @@
+syntax = "proto3";
+package pb.storage;
+
+option go_package = "pb/storage";
+
+import "pb/storage/storage.proto";
+
+service StorageService {
+	rpc GetObjectByID(GetObjectByIDRequest) returns (Storage) {}
+}

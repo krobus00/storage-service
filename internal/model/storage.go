@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	authPB "github.com/krobus00/auth-service/pb/auth"
+	pb "github.com/krobus00/storage-service/pb/storage"
 	"gorm.io/gorm"
 )
 
@@ -78,43 +79,72 @@ type HTTPFileUploadRequest struct {
 	IsPublic bool                  `form:"isPublic"`
 }
 
-type GetPresignURLPayload struct {
-	ObjectKey string
+type GetPresignedURLPayload struct {
+	ObjectID string
 }
 
-type HTTPGetPresignURLRequest struct {
-	ObjectKey string `query:"objecyKey"`
+type HTTPGetPresignedURLRequest struct {
+	ObjectID string `query:"id"`
 }
 
-func (m *HTTPGetPresignURLRequest) ToPayload() *GetPresignURLPayload {
-	return &GetPresignURLPayload{
-		ObjectKey: m.ObjectKey,
+func (m *HTTPGetPresignedURLRequest) ToPayload() *GetPresignedURLPayload {
+	return &GetPresignedURLPayload{
+		ObjectID: m.ObjectID,
 	}
 }
 
-type GetPresignURLResponse struct {
-	URL       string
-	ExpiredAt time.Time
+type GetPresignedURLResponse struct {
+	ID         string
+	Filename   string
+	URL        string
+	ExpiredAt  time.Time
+	IsPublic   bool
+	UploadedBy string
+	CreatedAt  time.Time
 }
 
-func (m *GetPresignURLResponse) ToHTTPResponse() *HTTPGetPresignURLResponse {
+func (m *GetPresignedURLResponse) ToHTTPResponse() *HTTPGetPresignedURLResponse {
 	expiredAt := m.ExpiredAt.UTC().Format(time.RFC3339Nano)
-	return &HTTPGetPresignURLResponse{
-		URL:       m.URL,
-		ExpiredAt: expiredAt,
+	createdAt := m.CreatedAt.UTC().Format(time.RFC3339Nano)
+	return &HTTPGetPresignedURLResponse{
+		ID:         m.ID,
+		Filename:   m.Filename,
+		URL:        m.URL,
+		ExpiredAt:  expiredAt,
+		IsPublic:   m.IsPublic,
+		UploadedBy: m.UploadedBy,
+		CreatedAt:  createdAt,
 	}
 }
 
-type HTTPGetPresignURLResponse struct {
-	URL       string `json:"url"`
-	ExpiredAt string `json:"expiredAt"`
+func (m *GetPresignedURLResponse) ToGRPCResponse() *pb.Storage {
+	expiredAt := m.ExpiredAt.UTC().Format(time.RFC3339Nano)
+	createdAt := m.CreatedAt.UTC().Format(time.RFC3339Nano)
+	return &pb.Storage{
+		Id:         m.ID,
+		FileName:   m.Filename,
+		SignedUrl:  m.URL,
+		ExpiredAt:  expiredAt,
+		IsPublic:   m.IsPublic,
+		UploadedBy: m.UploadedBy,
+		CreatedAt:  createdAt,
+	}
+}
+
+type HTTPGetPresignedURLResponse struct {
+	ID         string
+	Filename   string
+	URL        string
+	ExpiredAt  string
+	IsPublic   bool
+	UploadedBy string
+	CreatedAt  string
 }
 
 type StorageRepository interface {
 	Create(ctx context.Context, data *Storage) error
 	FindByID(ctx context.Context, id string) (*Storage, error)
-	FindByObjectKey(ctx context.Context, objectKey string) (*Storage, error)
-	GeneratePresignURL(ctx context.Context, storage *Storage) (*GetPresignURLResponse, error)
+	GeneratePresignedURL(ctx context.Context, storage *Storage) (*GetPresignedURLResponse, error)
 
 	// DI
 	InjectS3Client(client *s3.Client) error
@@ -123,7 +153,7 @@ type StorageRepository interface {
 
 type StorageUsecase interface {
 	Upload(ctx context.Context, payload *FileUploadPayload) (*Storage, error)
-	GeneratePresignURL(ctx context.Context, payload *GetPresignURLPayload) (*GetPresignURLResponse, error)
+	GeneratePresignedURL(ctx context.Context, payload *GetPresignedURLPayload) (*GetPresignedURLResponse, error)
 
 	// DI
 	InjectStorageRepo(repo StorageRepository) error

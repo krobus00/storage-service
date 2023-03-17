@@ -3,6 +3,6 @@ package constant
 type ctxKey string
 
 const (
-	KeyTokenCtx    ctxKey = "TOKEN"
+	KeyUserIDCtx   ctxKey = "USERID"
 	KeyUserInfoCtx ctxKey = "USERINFO"
 )

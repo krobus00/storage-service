@@ -8,12 +8,3 @@ func Contains[T comparable](elems []T, v T) bool {
 	}
 	return false
 }
-
-func ContainsMultiple[T comparable](elems []T, v []T) bool {
-	for _, s := range v {
-		if Contains(elems, s) {
-			return true
-		}
-	}
-	return false
-}

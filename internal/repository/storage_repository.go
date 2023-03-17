@@ -92,19 +92,8 @@ func (r *storageRepository) FindByID(ctx context.Context, id string) (*model.Sto
 	}
 	return storage, nil
 }
-func (r *storageRepository) FindByObjectKey(ctx context.Context, objectKey string) (*model.Storage, error) {
-	storage := new(model.Storage)
-	err := r.db.WithContext(ctx).First(storage, "object_key = ?", objectKey).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return storage, nil
-}
 
-func (r *storageRepository) GeneratePresignURL(ctx context.Context, storage *model.Storage) (*model.GetPresignURLResponse, error) {
+func (r *storageRepository) GeneratePresignedURL(ctx context.Context, storage *model.Storage) (*model.GetPresignedURLResponse, error) {
 	expiration := time.Now().Add(config.GetS3SignDuration())
 	bucketName := config.GetS3BucketName()
 	getObjectArgs := s3.GetObjectInput{
@@ -117,9 +106,14 @@ func (r *storageRepository) GeneratePresignURL(ctx context.Context, storage *mod
 	if err != nil {
 		return nil, err
 	}
-	return &model.GetPresignURLResponse{
-		URL:       res.URL,
-		ExpiredAt: expiration,
+	return &model.GetPresignedURLResponse{
+		ID:         storage.ID,
+		Filename:   storage.FileName,
+		URL:        res.URL,
+		ExpiredAt:  expiration,
+		IsPublic:   storage.IsPublic,
+		UploadedBy: storage.UploadedBy,
+		CreatedAt:  storage.CreatedAt,
 	}, nil
 
 }

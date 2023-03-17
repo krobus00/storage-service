@@ -10,40 +10,24 @@ import (
 	"github.com/krobus00/storage-service/internal/constant"
 )
 
-func setUserInfoContext(ctx context.Context, authClient authPB.AuthServiceClient) (context.Context, error) {
-	accessToken := fmt.Sprintf("%s", ctx.Value(constant.KeyTokenCtx))
-	user, err := authClient.GetUserInfo(ctx, &authPB.AuthRequest{
-		AccessToken: accessToken,
-	})
-	if err != nil {
-		return ctx, err
-	}
-	if user == nil {
-		return ctx, errors.New("user not found")
-	}
-	ctx = context.WithValue(ctx, constant.KeyUserInfoCtx, user)
+func getUserIDFromCtx(ctx context.Context) (string, error) {
+	ctxUserID := ctx.Value(constant.KeyUserIDCtx)
 
-	return ctx, nil
+	userID := fmt.Sprintf("%v", ctxUserID)
+	if userID == "" {
+		return "", errors.New("user not found")
+	}
+	return userID, nil
 }
 
-func getUserInfoFromContext(ctx context.Context) (*authPB.User, error) {
-	ctxUser := ctx.Value(constant.KeyUserInfoCtx)
-
-	val, ok := ctxUser.(*authPB.User)
-	if !ok {
-		return nil, errors.New("user not found")
-	}
-	return val, nil
-}
-
-func HasAccess(ctx context.Context, authClient authPB.AuthServiceClient, accessList []string) (bool, error) {
+func hasAccess(ctx context.Context, authClient authPB.AuthServiceClient, accessList []string) (bool, error) {
 	hasAccess := false
-	user, _ := getUserInfoFromContext(ctx)
-	if user == nil {
-		return hasAccess, errors.New("user not found")
+	userID, err := getUserIDFromCtx(ctx)
+	if err != nil {
+		return hasAccess, err
 	}
 	res, err := authClient.HasAccess(ctx, &authPB.HasAccessRequest{
-		UserId:      user.GetId(),
+		UserId:      userID,
 		AccessNames: accessList,
 	})
 
