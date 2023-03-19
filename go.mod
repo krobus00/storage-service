@@ -10,7 +10,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.0
 	github.com/jpillora/backoff v1.0.0
-	github.com/krobus00/auth-service v0.2.1
+	github.com/krobus00/auth-service v0.2.2
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/lib/pq v1.10.7
 	github.com/pressly/goose/v3 v3.9.0
