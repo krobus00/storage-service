@@ -10,6 +10,7 @@ var (
 type Response struct {
 	Message string `json:"message,omitempty"`
 	Data    any    `json:"data,omitempty"`
+	Errors  any    `json:"errors,omitempty"`
 }
 
 // NewResponse :nodoc:
@@ -21,6 +22,13 @@ func NewResponse() *Response {
 func NewDefaultResponse() *Response {
 	return &Response{
 		Message: "OK",
+	}
+}
+
+func WithBadRequestResponse(errors any) *Response {
+	return &Response{
+		Message: "Bad Request",
+		Errors:  errors,
 	}
 }
 

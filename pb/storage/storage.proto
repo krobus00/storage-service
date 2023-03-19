@@ -3,10 +3,10 @@ package pb.storage;
 
 option go_package = "pb/storage";
 
-message Storage {
+message Object {
   string id = 1;
   string file_name = 2;
-  string object_key = 3;
+  string type = 3;
   string signed_url = 4;
   string expired_at = 5;
   bool is_public = 6;

@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"regexp"
@@ -17,64 +18,84 @@ const (
 	DefaultPath = "DEFAULT-PATH"
 )
 
-type Storage struct {
+var (
+	ErrUserNotFound             = errors.New("user not found")
+	ErrObjectNotFound           = errors.New("object not found")
+	ErrUnauthorizedObjectAccess = errors.New("unauthorized access")
+)
+
+type Object struct {
 	ID         string
-	Src        *multipart.FileHeader `gorm:"-" json:"-"`
-	ObjectKey  string
 	FileName   string
+	Key        string
 	UploadedBy string
 	IsPublic   bool
+	TypeID     string `json:"-"`
+	Type       string `gorm:"-"`
 	CreatedAt  time.Time
 }
 
-func NewStorage() *Storage {
-	return new(Storage)
+func (Object) TableName() string {
+	return "objects"
 }
 
-func (m *Storage) SetID(id string) *Storage {
+type ObjectPayload struct {
+	Src    *multipart.FileHeader
+	Object *Object
+}
+
+func (m *ObjectPayload) SetObject(object *Object) *ObjectPayload {
+	m.Object = object
+	return m
+}
+
+func NewObject() *Object {
+	return new(Object)
+}
+
+func (m *Object) SetID(id string) *Object {
 	m.ID = id
 	return m
 }
 
-func (m *Storage) SetSrc(src *multipart.FileHeader) *Storage {
-	m.Src = src
+func (m *Object) SetTypeID(id string) *Object {
+	m.TypeID = id
 	return m
 }
 
-func (m *Storage) SetObjectKey(key string) *Storage {
+func (m *Object) SetType(name string) *Object {
+	m.Type = name
+	return m
+}
+
+func (m *Object) SetKey(key string) *Object {
 	ran := time.Now().UnixNano()
 	if key == DefaultPath {
 		key = m.UploadedBy
 	}
-	m.ObjectKey = fmt.Sprintf("%s/%d", key, ran)
+	m.Key = fmt.Sprintf("%s/%d", key, ran)
 	return m
 }
 
-func (m *Storage) SetFileName(fileName string) *Storage {
+func (m *Object) SetFileName(fileName string) *Object {
 	re := regexp.MustCompile(`\.`)
 	m.FileName = re.ReplaceAllString(fileName, "")
 	return m
 }
 
-func (m *Storage) SetUploadedBy(uploadedBy string) *Storage {
+func (m *Object) SetUploadedBy(uploadedBy string) *Object {
 	m.UploadedBy = uploadedBy
 	return m
 }
 
-func (m *Storage) SetIsPublic(isPublic bool) *Storage {
+func (m *Object) SetIsPublic(isPublic bool) *Object {
 	m.IsPublic = isPublic
 	return m
 }
 
-type FileUploadPayload struct {
-	Src      *multipart.FileHeader
-	Filename string
-	Path     string
-	IsPublic bool
-}
-
 type HTTPFileUploadRequest struct {
 	Src      *multipart.FileHeader `form:"file"`
+	Type     string                `form:"type"`
 	Filename string                `form:"fileName"`
 	IsPublic bool                  `form:"isPublic"`
 }
@@ -96,6 +117,7 @@ func (m *HTTPGetPresignedURLRequest) ToPayload() *GetPresignedURLPayload {
 type GetPresignedURLResponse struct {
 	ID         string
 	Filename   string
+	Type       string
 	URL        string
 	ExpiredAt  time.Time
 	IsPublic   bool
@@ -110,6 +132,7 @@ func (m *GetPresignedURLResponse) ToHTTPResponse() *HTTPGetPresignedURLResponse 
 		ID:         m.ID,
 		Filename:   m.Filename,
 		URL:        m.URL,
+		Type:       m.Type,
 		ExpiredAt:  expiredAt,
 		IsPublic:   m.IsPublic,
 		UploadedBy: m.UploadedBy,
@@ -117,12 +140,13 @@ func (m *GetPresignedURLResponse) ToHTTPResponse() *HTTPGetPresignedURLResponse 
 	}
 }
 
-func (m *GetPresignedURLResponse) ToGRPCResponse() *pb.Storage {
+func (m *GetPresignedURLResponse) ToGRPCResponse() *pb.Object {
 	expiredAt := m.ExpiredAt.UTC().Format(time.RFC3339Nano)
 	createdAt := m.CreatedAt.UTC().Format(time.RFC3339Nano)
-	return &pb.Storage{
+	return &pb.Object{
 		Id:         m.ID,
 		FileName:   m.Filename,
+		Type:       m.Type,
 		SignedUrl:  m.URL,
 		ExpiredAt:  expiredAt,
 		IsPublic:   m.IsPublic,
@@ -135,27 +159,30 @@ type HTTPGetPresignedURLResponse struct {
 	ID         string
 	Filename   string
 	URL        string
+	Type       string
 	ExpiredAt  string
 	IsPublic   bool
 	UploadedBy string
 	CreatedAt  string
 }
 
-type StorageRepository interface {
-	Create(ctx context.Context, data *Storage) error
-	FindByID(ctx context.Context, id string) (*Storage, error)
-	GeneratePresignedURL(ctx context.Context, storage *Storage) (*GetPresignedURLResponse, error)
+type ObjectRepository interface {
+	Create(ctx context.Context, data *ObjectPayload) error
+	FindByID(ctx context.Context, id string) (*Object, error)
+	GeneratePresignedURL(ctx context.Context, object *Object) (*GetPresignedURLResponse, error)
 
 	// DI
 	InjectS3Client(client *s3.Client) error
 	InjectDB(db *gorm.DB) error
 }
 
-type StorageUsecase interface {
-	Upload(ctx context.Context, payload *FileUploadPayload) (*Storage, error)
+type ObjectUsecase interface {
+	Upload(ctx context.Context, payload *ObjectPayload) (*Object, error)
 	GeneratePresignedURL(ctx context.Context, payload *GetPresignedURLPayload) (*GetPresignedURLResponse, error)
 
 	// DI
-	InjectStorageRepo(repo StorageRepository) error
+	InjectObjectRepo(repo ObjectRepository) error
+	InjectObjectTypeRepo(repo ObjectTypeRepository) error
+	InjectObjectWhitelistTypeRepo(repo ObjectWhitelistTypeRepository) error
 	InjectAuthClient(client authPB.AuthServiceClient) error
 }

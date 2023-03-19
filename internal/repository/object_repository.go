@@ -15,20 +15,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/krobus00/storage-service/internal/config"
 	"github.com/krobus00/storage-service/internal/model"
-	"github.com/krobus00/storage-service/internal/util"
 	"gorm.io/gorm"
 )
 
-type storageRepository struct {
+type objectRepository struct {
 	s3 *s3.Client
 	db *gorm.DB
 }
 
-func NewStorageRepository() model.StorageRepository {
-	return new(storageRepository)
+func NewObjectRepository() model.ObjectRepository {
+	return new(objectRepository)
 }
 
-func (r *storageRepository) uploadToS3(ctx context.Context, data *model.Storage) error {
+func (r *objectRepository) uploadToS3(ctx context.Context, data *model.ObjectPayload) error {
 	src, err := data.Src.Open()
 	if err != nil {
 		return err
@@ -46,17 +45,13 @@ func (r *storageRepository) uploadToS3(ctx context.Context, data *model.Storage)
 		return err
 	}
 
-	if !util.Contains(config.FileTypeWhitelist(), exts[0]) {
-		return errors.New("file extention not allowed")
-	}
-	data.FileName = fmt.Sprintf("%s%s", data.FileName, exts[0])
-
-	data.ObjectKey = fmt.Sprintf("%s%s", data.ObjectKey, exts[0])
+	data.Object.FileName = fmt.Sprintf("%s%s", data.Object.FileName, exts[0])
+	data.Object.Key = fmt.Sprintf("%s%s", data.Object.Key, exts[0])
 
 	bucketName := config.GetS3BucketName()
 	_, err = r.s3.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        &bucketName,
-		Key:           &data.ObjectKey,
+		Key:           &data.Object.Key,
 		ACL:           types.ObjectCannedACLPrivate,
 		ContentLength: int64(buf.Len()),
 		Body:          buf,
@@ -69,37 +64,37 @@ func (r *storageRepository) uploadToS3(ctx context.Context, data *model.Storage)
 	return nil
 }
 
-func (r *storageRepository) Create(ctx context.Context, data *model.Storage) error {
+func (r *objectRepository) Create(ctx context.Context, data *model.ObjectPayload) error {
 	err := r.uploadToS3(ctx, data)
 	if err != nil {
 		return err
 	}
-	err = r.db.WithContext(ctx).Create(data).Error
+	err = r.db.WithContext(ctx).Create(data.Object).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *storageRepository) FindByID(ctx context.Context, id string) (*model.Storage, error) {
-	storage := new(model.Storage)
-	err := r.db.WithContext(ctx).First(storage, "id = ?", id).Error
+func (r *objectRepository) FindByID(ctx context.Context, id string) (*model.Object, error) {
+	object := new(model.Object)
+	err := r.db.WithContext(ctx).First(object, "id = ?", id).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return storage, nil
+	return object, nil
 }
 
-func (r *storageRepository) GeneratePresignedURL(ctx context.Context, storage *model.Storage) (*model.GetPresignedURLResponse, error) {
+func (r *objectRepository) GeneratePresignedURL(ctx context.Context, object *model.Object) (*model.GetPresignedURLResponse, error) {
 	expiration := time.Now().Add(config.GetS3SignDuration())
 	bucketName := config.GetS3BucketName()
 	getObjectArgs := s3.GetObjectInput{
 		Bucket:          &bucketName,
 		ResponseExpires: &expiration,
-		Key:             &storage.ObjectKey,
+		Key:             &object.Key,
 	}
 
 	res, err := s3.NewPresignClient(r.s3).PresignGetObject(ctx, &getObjectArgs)
@@ -107,13 +102,13 @@ func (r *storageRepository) GeneratePresignedURL(ctx context.Context, storage *m
 		return nil, err
 	}
 	return &model.GetPresignedURLResponse{
-		ID:         storage.ID,
-		Filename:   storage.FileName,
+		ID:         object.ID,
+		Filename:   object.FileName,
 		URL:        res.URL,
 		ExpiredAt:  expiration,
-		IsPublic:   storage.IsPublic,
-		UploadedBy: storage.UploadedBy,
-		CreatedAt:  storage.CreatedAt,
+		IsPublic:   object.IsPublic,
+		UploadedBy: object.UploadedBy,
+		CreatedAt:  object.CreatedAt,
 	}, nil
 
 }
