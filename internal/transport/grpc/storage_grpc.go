@@ -9,7 +9,7 @@ import (
 
 // Server :nodoc:
 type Server struct {
-	storageUC model.StorageUsecase
+	objectUC model.ObjectUsecase
 	pb.UnsafeStorageServiceServer
 }
 
@@ -18,15 +18,15 @@ func NewGRPCServer() *Server {
 	return new(Server)
 }
 
-func (t *Server) GetObjectByID(ctx context.Context, req *pb.GetObjectByIDRequest) (*pb.Storage, error) {
+func (t *Server) GetObjectByID(ctx context.Context, req *pb.GetObjectByIDRequest) (*pb.Object, error) {
 	ctx = setUserIDCtx(ctx, req.GetUserId())
 
-	storage, err := t.storageUC.GeneratePresignedURL(ctx, &model.GetPresignedURLPayload{
+	presignedObject, err := t.objectUC.GeneratePresignedURL(ctx, &model.GetPresignedURLPayload{
 		ObjectID: req.GetObjectId(),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return storage.ToGRPCResponse(), nil
+	return presignedObject.ToGRPCResponse(), nil
 }

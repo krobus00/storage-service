@@ -42,35 +42,47 @@ func StartServer() {
 	authClient := authPB.NewAuthServiceClient(authConn)
 
 	// init repository
-	storageRepo := repository.NewStorageRepository()
-	err = storageRepo.InjectDB(infrastructure.DB)
+	objectRepo := repository.NewObjectRepository()
+	err = objectRepo.InjectDB(infrastructure.DB)
 	continueOrFatal(err)
-	err = storageRepo.InjectS3Client(s3Client)
+	err = objectRepo.InjectS3Client(s3Client)
+	continueOrFatal(err)
+
+	objectTypeRepo := repository.NewObjectTypeRepository()
+	err = objectTypeRepo.InjectDB(infrastructure.DB)
+	continueOrFatal(err)
+
+	objectWhitelistTypeRepo := repository.NewObjectWhitelistTypeRepository()
+	err = objectWhitelistTypeRepo.InjectDB(infrastructure.DB)
 	continueOrFatal(err)
 
 	// init usecase
-	storageUsecase := usecase.NewStorageUsecase()
-	err = storageUsecase.InjectStorageRepo(storageRepo)
+	objectUsecase := usecase.NewObjectUsecase()
+	err = objectUsecase.InjectObjectRepo(objectRepo)
 	continueOrFatal(err)
-	err = storageUsecase.InjectAuthClient(authClient)
+	err = objectUsecase.InjectObjectTypeRepo(objectTypeRepo)
+	continueOrFatal(err)
+	err = objectUsecase.InjectObjectWhitelistTypeRepo(objectWhitelistTypeRepo)
+	continueOrFatal(err)
+	err = objectUsecase.InjectAuthClient(authClient)
 	continueOrFatal(err)
 
 	// init delivery layer
 	// ini http
-	storageCtrl := http.NewStorageController()
-	err = storageCtrl.InjectStorageUsecase(storageUsecase)
+	objectCtrl := http.NewObjectController()
+	err = objectCtrl.InjectObjectUsecase(objectUsecase)
 	continueOrFatal(err)
 
 	httpDelivery := http.NewHTTPDelivery()
 	err = httpDelivery.InjectEcho(echo)
 	continueOrFatal(err)
-	err = httpDelivery.InjectStorageController(storageCtrl)
+	err = httpDelivery.InjectObjectController(objectCtrl)
 	continueOrFatal(err)
 	httpDelivery.InitRoutes()
 
 	// init grpc
 	grpcDelivery := grpcServer.NewGRPCServer()
-	err = grpcDelivery.InjectStorageUsecase(storageUsecase)
+	err = grpcDelivery.InjectObjectUsecase(objectUsecase)
 	continueOrFatal(err)
 
 	storageGrpcServer := grpc.NewServer()

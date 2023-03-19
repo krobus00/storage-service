@@ -177,10 +177,6 @@ func GetS3Credential() *credentials.StaticCredentialsProvider {
 	return nil
 }
 
-func FileTypeWhitelist() []string {
-	return viper.GetStringSlice("file_type_whitelist")
-}
-
 func AuthGRPCHost() string {
 	return viper.GetString("services.auth.grpc")
 }

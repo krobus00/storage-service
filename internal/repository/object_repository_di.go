@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *storageRepository) InjectS3Client(client *s3.Client) error {
+func (r *objectRepository) InjectS3Client(client *s3.Client) error {
 	if client == nil {
 		return errors.New("invalid s3 client")
 	}
@@ -15,9 +15,9 @@ func (r *storageRepository) InjectS3Client(client *s3.Client) error {
 	return nil
 }
 
-func (r *storageRepository) InjectDB(db *gorm.DB) error {
+func (r *objectRepository) InjectDB(db *gorm.DB) error {
 	if db == nil {
-		return errors.New("invalid b")
+		return errors.New("invalid db")
 	}
 	r.db = db
 	return nil

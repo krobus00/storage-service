@@ -6,5 +6,5 @@ option go_package = "pb/storage";
 import "pb/storage/storage.proto";
 
 service StorageService {
-	rpc GetObjectByID(GetObjectByIDRequest) returns (Storage) {}
+	rpc GetObjectByID(GetObjectByIDRequest) returns (Object) {}
 }
