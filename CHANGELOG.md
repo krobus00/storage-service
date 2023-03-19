@@ -11,3 +11,7 @@
 ## [v0.2.1] - 2023-03-19
 ### Hot Fix
 - update auth service version to v0.2.2
+
+## [v0.2.2] - 2023-03-19
+### Hot Fix
+- Fix access control
