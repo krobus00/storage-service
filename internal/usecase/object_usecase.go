@@ -108,6 +108,9 @@ func (uc *objectUsecase) hasAccess(ctx context.Context, object *model.Object) er
 	if err != nil {
 		return model.ErrUnauthorizedObjectAccess
 	}
+	if object.UploadedBy == userID {
+		return nil
+	}
 	if !object.IsPublic {
 		allowAccess, err := hasAccess(ctx, uc.authClient, []string{constant.FULL_ACCESS})
 		if err != nil {
@@ -116,11 +119,8 @@ func (uc *objectUsecase) hasAccess(ctx context.Context, object *model.Object) er
 		if allowAccess {
 			return nil
 		}
-		if object.UploadedBy != userID {
-			return model.ErrUnauthorizedObjectAccess
-		}
 	}
-	return nil
+	return model.ErrUnauthorizedObjectAccess
 }
 
 func (uc *objectUsecase) validationObjectType(ctx context.Context, data *multipart.FileHeader, typeID string) error {
