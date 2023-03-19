@@ -26,11 +26,6 @@ s3:
   access_key: "xxx"
   secret_key: "xxxx"
   sign_duration: "1h"
-file_type_whitelist:
-  - .png
-  - .jpg
-  - .jpeg
-  - .pdf
 services:
   auth:
     grpc: "localhost:5000" 

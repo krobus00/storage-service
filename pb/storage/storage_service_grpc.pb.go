@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
-	GetObjectByID(ctx context.Context, in *GetObjectByIDRequest, opts ...grpc.CallOption) (*Storage, error)
+	GetObjectByID(ctx context.Context, in *GetObjectByIDRequest, opts ...grpc.CallOption) (*Object, error)
 }
 
 type storageServiceClient struct {
@@ -33,8 +33,8 @@ func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
 	return &storageServiceClient{cc}
 }
 
-func (c *storageServiceClient) GetObjectByID(ctx context.Context, in *GetObjectByIDRequest, opts ...grpc.CallOption) (*Storage, error) {
-	out := new(Storage)
+func (c *storageServiceClient) GetObjectByID(ctx context.Context, in *GetObjectByIDRequest, opts ...grpc.CallOption) (*Object, error) {
+	out := new(Object)
 	err := c.cc.Invoke(ctx, "/pb.storage.StorageService/GetObjectByID", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (c *storageServiceClient) GetObjectByID(ctx context.Context, in *GetObjectB
 // All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility
 type StorageServiceServer interface {
-	GetObjectByID(context.Context, *GetObjectByIDRequest) (*Storage, error)
+	GetObjectByID(context.Context, *GetObjectByIDRequest) (*Object, error)
 	mustEmbedUnimplementedStorageServiceServer()
 }
 
@@ -54,7 +54,7 @@ type StorageServiceServer interface {
 type UnimplementedStorageServiceServer struct {
 }
 
-func (UnimplementedStorageServiceServer) GetObjectByID(context.Context, *GetObjectByIDRequest) (*Storage, error) {
+func (UnimplementedStorageServiceServer) GetObjectByID(context.Context, *GetObjectByIDRequest) (*Object, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObjectByID not implemented")
 }
 func (UnimplementedStorageServiceServer) mustEmbedUnimplementedStorageServiceServer() {}

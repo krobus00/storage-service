@@ -7,8 +7,8 @@ import (
 )
 
 type HTTPDelivery struct {
-	e                 *echo.Echo
-	storageController *StorageController
+	e                *echo.Echo
+	objectController *ObjectController
 }
 
 func NewHTTPDelivery() *HTTPDelivery {
@@ -16,27 +16,27 @@ func NewHTTPDelivery() *HTTPDelivery {
 }
 
 // InjectEcho :nodoc:
-func (d *HTTPDelivery) InjectEcho(e *echo.Echo) error {
+func (t *HTTPDelivery) InjectEcho(e *echo.Echo) error {
 	if e == nil {
 		return errors.New("invalid echo")
 	}
-	d.e = e
+	t.e = e
 	return nil
 }
 
 // InjectUserController :nodoc:
-func (d *HTTPDelivery) InjectStorageController(c *StorageController) error {
+func (t *HTTPDelivery) InjectObjectController(c *ObjectController) error {
 	if c == nil {
-		return errors.New("invalid storage controller")
+		return errors.New("invalid object controller")
 	}
-	d.storageController = c
+	t.objectController = c
 	return nil
 }
 
-func (d *HTTPDelivery) InitRoutes() {
-	api := d.e.Group("/api")
+func (t *HTTPDelivery) InitRoutes() {
+	api := t.e.Group("/api")
 
 	storage := api.Group("/storage")
-	storage.GET("/", d.storageController.GetPresignURL, DecodeJWTToken(true))
-	storage.POST("/upload", d.storageController.Upload, DecodeJWTToken(false))
+	storage.GET("/", t.objectController.GetPresignURL, DecodeJWTToken(true))
+	storage.POST("/upload", t.objectController.Upload, DecodeJWTToken(false))
 }
