@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -9,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "storage-service",
 	Short: "A brief description of your application",
@@ -29,9 +30,9 @@ func Execute() {
 	}
 }
 
-func init() {
+func Init(name, version string) {
+	log.Info(fmt.Sprintf("starting %s:%s ...", name, version))
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalln(err.Error())
 	}
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -10,13 +10,12 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// DecodeJWTToken :nodoc:
 func DecodeJWTToken(allowGuest bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(eCtx echo.Context) error {
 			res := model.NewResponse().WithMessage(model.ErrTokenInvalid.Error())
 			accessToken := eCtx.Request().Header.Get("Authorization")
-			accessToken = strings.Replace(accessToken, "Bearer ", "", -1)
+			accessToken = strings.ReplaceAll(accessToken, "Bearer ", "")
 			if accessToken == "" && !allowGuest {
 				return eCtx.JSON(http.StatusUnauthorized, res)
 			}

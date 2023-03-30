@@ -3,16 +3,14 @@ package usecase
 import (
 	"bytes"
 	"context"
-	"io"
 	"mime"
-	"mime/multipart"
 	"net/http"
 
 	"github.com/krobus00/storage-service/internal/constant"
 	"github.com/krobus00/storage-service/internal/model"
 
 	authPB "github.com/krobus00/auth-service/pb/auth"
-	"github.com/krobus00/storage-service/internal/util"
+	"github.com/krobus00/storage-service/internal/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -33,7 +31,14 @@ func (uc *objectUsecase) Upload(ctx context.Context, payload *model.ObjectPayloa
 		"fileName":  payload.Object.FileName,
 		"isPublic":  payload.Object.IsPublic,
 	})
-	userID, err := getUserIDFromCtx(ctx)
+
+	userID := getUserIDFromCtx(ctx)
+
+	err := hasAccess(ctx, uc.authClient, []string{
+		constant.PermissionFullAccess,
+		constant.PermissionObjectAll,
+		constant.PermissionObjectCreate,
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -54,7 +59,7 @@ func (uc *objectUsecase) Upload(ctx context.Context, payload *model.ObjectPayloa
 		return nil, err
 	}
 	newObject := model.NewObject().
-		SetID(util.GenerateUUID()).
+		SetID(utils.GenerateUUID()).
 		SetTypeID(objectType.ID).
 		SetType(objectType.Name).
 		SetUploadedBy(userID).
@@ -76,6 +81,7 @@ func (uc *objectUsecase) GeneratePresignedURL(ctx context.Context, payload *mode
 	logger := log.WithFields(log.Fields{
 		"objectID": payload.ObjectID,
 	})
+
 	object, err := uc.objectRepo.FindByID(ctx, payload.ObjectID)
 	if err != nil {
 		logger.Error(err.Error())
@@ -92,48 +98,49 @@ func (uc *objectUsecase) GeneratePresignedURL(ctx context.Context, payload *mode
 		return nil, err
 	}
 
-	presignObject, err := uc.objectRepo.GeneratePresignedURL(ctx, object)
+	objectType, err := uc.objectTypeRepo.FindByID(ctx, object.TypeID)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
 	}
-	return presignObject, nil
+	if objectType == nil {
+		return nil, model.ErrObjectNotFound
+	}
+	object.SetType(objectType.Name)
+
+	presignedObject, err := uc.objectRepo.GeneratePresignedURL(ctx, object)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, err
+	}
+
+	return presignedObject, nil
 }
 
 func (uc *objectUsecase) hasAccess(ctx context.Context, object *model.Object) error {
 	if object.IsPublic {
 		return nil
 	}
-	userID, err := getUserIDFromCtx(ctx)
-	if err != nil {
-		return model.ErrUnauthorizedObjectAccess
-	}
+	userID := getUserIDFromCtx(ctx)
+
 	if object.UploadedBy == userID {
 		return nil
 	}
 	if !object.IsPublic {
-		allowAccess, err := hasAccess(ctx, uc.authClient, []string{constant.FULL_ACCESS})
-		if err != nil {
-			return model.ErrUnauthorizedObjectAccess
-		}
-		if allowAccess {
+		err := hasAccess(ctx, uc.authClient, []string{
+			constant.PermissionFullAccess,
+			constant.PermissionObjectAll,
+			constant.PermissionObjectReadPrivate,
+		})
+		if err == nil {
 			return nil
 		}
 	}
-	return model.ErrUnauthorizedObjectAccess
+	return model.ErrUnauthorizeAccess
 }
 
-func (uc *objectUsecase) validationObjectType(ctx context.Context, data *multipart.FileHeader, typeID string) error {
-	src, err := data.Open()
-	if err != nil {
-		return err
-	}
-	defer src.Close()
-
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, src); err != nil {
-		return err
-	}
+func (uc *objectUsecase) validationObjectType(ctx context.Context, data []byte, typeID string) error {
+	buf := bytes.NewBuffer(data)
 
 	contentType := http.DetectContentType(buf.Bytes())
 	exts, err := mime.ExtensionsByType(contentType)

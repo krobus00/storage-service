@@ -44,5 +44,4 @@ func StartMigration(actionType string, name string, step *int64) {
 	}
 
 	continueOrFatal(err)
-
 }

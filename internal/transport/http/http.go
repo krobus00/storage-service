@@ -6,17 +6,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type HTTPDelivery struct {
+type Delivery struct {
 	e                *echo.Echo
 	objectController *ObjectController
 }
 
-func NewHTTPDelivery() *HTTPDelivery {
-	return new(HTTPDelivery)
+func NewDelivery() *Delivery {
+	return new(Delivery)
 }
 
-// InjectEcho :nodoc:
-func (t *HTTPDelivery) InjectEcho(e *echo.Echo) error {
+func (t *Delivery) InjectEcho(e *echo.Echo) error {
 	if e == nil {
 		return errors.New("invalid echo")
 	}
@@ -24,8 +23,7 @@ func (t *HTTPDelivery) InjectEcho(e *echo.Echo) error {
 	return nil
 }
 
-// InjectUserController :nodoc:
-func (t *HTTPDelivery) InjectObjectController(c *ObjectController) error {
+func (t *Delivery) InjectObjectController(c *ObjectController) error {
 	if c == nil {
 		return errors.New("invalid object controller")
 	}
@@ -33,7 +31,7 @@ func (t *HTTPDelivery) InjectObjectController(c *ObjectController) error {
 	return nil
 }
 
-func (t *HTTPDelivery) InitRoutes() {
+func (t *Delivery) InitRoutes() {
 	api := t.e.Group("/api")
 
 	storage := api.Group("/storage")

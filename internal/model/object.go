@@ -1,3 +1,6 @@
+//go:generate mockgen -destination=mock/mock_object_repository.go -package=mock github.com/krobus00/storage-service/internal/model ObjectRepository
+//go:generate mockgen -destination=mock/mock_object_usecase.go -package=mock github.com/krobus00/storage-service/internal/model ObjectUsecase
+
 package model
 
 import (
@@ -8,7 +11,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/go-redis/redis/v8"
 	authPB "github.com/krobus00/auth-service/pb/auth"
 	pb "github.com/krobus00/storage-service/pb/storage"
 	"gorm.io/gorm"
@@ -19,9 +22,7 @@ const (
 )
 
 var (
-	ErrUserNotFound             = errors.New("user not found")
-	ErrObjectNotFound           = errors.New("object not found")
-	ErrUnauthorizedObjectAccess = errors.New("unauthorized access")
+	ErrObjectNotFound = errors.New("object not found")
 )
 
 type Object struct {
@@ -30,7 +31,7 @@ type Object struct {
 	Key        string
 	UploadedBy string
 	IsPublic   bool
-	TypeID     string `json:"-"`
+	TypeID     string
 	Type       string `gorm:"-"`
 	CreatedAt  time.Time
 }
@@ -39,8 +40,23 @@ func (Object) TableName() string {
 	return "objects"
 }
 
+func NewObjectCacheKey(id string) string {
+	return fmt.Sprintf("objects:objectID:%s", id)
+}
+
+func NewObjectPresignedURLCacheKey(id string) string {
+	return fmt.Sprintf("objects:objectID:%s:presignedURL", id)
+}
+
+func GetObjectCacheKeys(id string) []string {
+	return []string{
+		NewObjectCacheKey(id),
+		NewObjectPresignedURLCacheKey(id),
+	}
+}
+
 type ObjectPayload struct {
-	Src    *multipart.FileHeader
+	Src    []byte
 	Object *Object
 }
 
@@ -156,14 +172,38 @@ func (m *GetPresignedURLResponse) ToGRPCResponse() *pb.Object {
 }
 
 type HTTPGetPresignedURLResponse struct {
-	ID         string
-	Filename   string
-	URL        string
-	Type       string
-	ExpiredAt  string
-	IsPublic   bool
-	UploadedBy string
-	CreatedAt  string
+	ID         string `json:"id"`
+	Filename   string `json:"filename"`
+	URL        string `json:"url"`
+	Type       string `json:"type"`
+	ExpiredAt  string `json:"expiredAt"`
+	IsPublic   bool   `json:"isPublic"`
+	UploadedBy string `json:"uploadedby"`
+	CreatedAt  string `json:"createdAt"`
+}
+
+type HTTPUploadObjectResponse struct {
+	ID         string    `json:"id"`
+	FileName   string    `json:"filename"`
+	Key        string    `json:"key"`
+	UploadedBy string    `json:"uploadedBy"`
+	IsPublic   bool      `json:"isPublic"`
+	TypeID     string    `json:"typeID"`
+	Type       string    `json:"type"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+func (m *Object) ToHTTPResponse() *HTTPUploadObjectResponse {
+	return &HTTPUploadObjectResponse{
+		ID:         m.ID,
+		FileName:   m.FileName,
+		Key:        m.Key,
+		UploadedBy: m.UploadedBy,
+		IsPublic:   m.IsPublic,
+		TypeID:     m.TypeID,
+		Type:       m.Type,
+		CreatedAt:  m.CreatedAt,
+	}
 }
 
 type ObjectRepository interface {
@@ -172,8 +212,9 @@ type ObjectRepository interface {
 	GeneratePresignedURL(ctx context.Context, object *Object) (*GetPresignedURLResponse, error)
 
 	// DI
-	InjectS3Client(client *s3.Client) error
+	InjectS3Client(client S3Client) error
 	InjectDB(db *gorm.DB) error
+	InjectRedisClient(client *redis.Client) error
 }
 
 type ObjectUsecase interface {

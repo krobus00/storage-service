@@ -10,33 +10,33 @@ import (
 	"github.com/krobus00/storage-service/internal/model"
 )
 
-func getUserIDFromCtx(ctx context.Context) (string, error) {
+func getUserIDFromCtx(ctx context.Context) string {
 	ctxUserID := ctx.Value(constant.KeyUserIDCtx)
 
 	userID := fmt.Sprintf("%v", ctxUserID)
 	if userID == "" {
-		return "", model.ErrUserNotFound
+		return constant.GuestID
 	}
-	return userID, nil
+	return userID
 }
 
-func hasAccess(ctx context.Context, authClient authPB.AuthServiceClient, accessList []string) (bool, error) {
-	hasAccess := false
-	userID, err := getUserIDFromCtx(ctx)
-	if err != nil {
-		return hasAccess, err
-	}
+func hasAccess(ctx context.Context, authClient authPB.AuthServiceClient, permissions []string) error {
+	userID := getUserIDFromCtx(ctx)
+
 	res, err := authClient.HasAccess(ctx, &authPB.HasAccessRequest{
 		UserId:      userID,
-		AccessNames: accessList,
+		Permissions: permissions,
 	})
 
 	if err != nil {
-		return hasAccess, err
+		return model.ErrUnauthorizeAccess
 	}
 	if res == nil {
-		return hasAccess, model.ErrUnauthorizedObjectAccess
+		return model.ErrUnauthorizeAccess
 	}
-	hasAccess = res.Value
-	return hasAccess, nil
+
+	if res.Value {
+		return nil
+	}
+	return model.ErrUnauthorizeAccess
 }
