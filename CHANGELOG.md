@@ -1,17 +1,53 @@
-# Storage Service
 
-## [v0.1.0] - 2023-03-18
-### New Feature
-- implement HTTP and GRPC service
+<a name="v0.3.0"></a>
+## [v0.3.0](https://github.com/krobus00/storage-service/compare/v0.2.2...v0.3.0)
 
-## [v0.2.0] - 2023-03-19
-### New Feature
-- implement dynamic object extension validation based on database
+> 2023-03-30
 
-## [v0.2.1] - 2023-03-19
-### Hot Fix
-- update auth service version to v0.2.2
+### Test
 
-## [v0.2.2] - 2023-03-19
-### Hot Fix
-- Fix access control
+* add unit test ([#4](https://github.com/krobus00/storage-service/issues/4))
+
+
+<a name="v0.2.2"></a>
+## [v0.2.2](https://github.com/krobus00/storage-service/compare/v0.2.0...v0.2.2)
+
+> 2023-03-19
+
+### Bump
+
+* update changelog
+
+### Hotfix
+
+* fix access control
+* update auth service
+
+
+<a name="v0.2.0"></a>
+## [v0.2.0](https://github.com/krobus00/storage-service/compare/v0.1.0...v0.2.0)
+
+> 2023-03-19
+
+### Bump
+
+* update changelog
+
+### Feature
+
+* object type validation ([#1](https://github.com/krobus00/storage-service/issues/1))
+
+
+<a name="v0.1.0"></a>
+## v0.1.0
+
+> 2023-03-18
+
+### Bump
+
+* update changelog
+
+### Feature
+
+* add grpc service
+
