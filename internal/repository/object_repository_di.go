@@ -3,15 +3,24 @@ package repository
 import (
 	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/go-redis/redis/v8"
+	"github.com/krobus00/storage-service/internal/model"
 	"gorm.io/gorm"
 )
 
-func (r *objectRepository) InjectS3Client(client *s3.Client) error {
+func (r *objectRepository) InjectS3Client(client model.S3Client) error {
 	if client == nil {
 		return errors.New("invalid s3 client")
 	}
 	r.s3 = client
+	return nil
+}
+
+func (r *objectRepository) InjectRedisClient(client *redis.Client) error {
+	if client == nil {
+		return errors.New("invalid redis client")
+	}
+	r.redisClient = client
 	return nil
 }
 

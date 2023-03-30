@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS objects (
     is_public boolean NOT NULL,
     type_id varchar(36) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_type FOREIGN KEY(type_id) REFERENCES object_types(id)
+    CONSTRAINT fk_type FOREIGN KEY(type_id) REFERENCES object_types(id) ON DELETE CASCADE
 );
 -- +goose StatementEnd
 

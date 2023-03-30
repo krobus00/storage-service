@@ -6,7 +6,7 @@ import (
 	"github.com/krobus00/storage-service/internal/model"
 )
 
-func (t *Server) InjectObjectUsecase(uc model.ObjectUsecase) error {
+func (t *Delivery) InjectObjectUsecase(uc model.ObjectUsecase) error {
 	if uc == nil {
 		return errors.New("invalid object usecase")
 	}

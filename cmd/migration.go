@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// migrationCmd represents the migration command
+// migrationCmd represents the migration command.
 var migrationCmd = &cobra.Command{
 	Use:   "migration",
 	Short: "database migration",
