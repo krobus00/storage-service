@@ -20,7 +20,7 @@ func continueOrFatal(err error) {
 	}
 }
 
-// gracefulShutdown waits for termination syscalls and doing clean up operations after received it
+// gracefulShutdown waits for termination syscalls and doing clean up operations after received it.
 func gracefulShutdown(ctx context.Context, timeout time.Duration, ops map[string]operation) <-chan struct{} {
 	wait := make(chan struct{})
 	go func() {

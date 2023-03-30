@@ -1,6 +1,8 @@
 package http
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 
 	"github.com/krobus00/storage-service/internal/model"
@@ -30,11 +32,23 @@ func (t *ObjectController) Upload(eCtx echo.Context) (err error) {
 
 	req.Src, err = eCtx.FormFile("file")
 	if err != nil {
+		res = model.WithBadRequestResponse("file is required")
+		return eCtx.JSON(http.StatusBadRequest, res)
+	}
+
+	src, err := req.Src.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, src); err != nil {
 		return err
 	}
 
 	object, err := t.objectUC.Upload(ctx, &model.ObjectPayload{
-		Src: req.Src,
+		Src: buf.Bytes(),
 		Object: &model.Object{
 			FileName: req.Filename,
 			Type:     req.Type,
@@ -47,13 +61,13 @@ func (t *ObjectController) Upload(eCtx echo.Context) (err error) {
 		return eCtx.JSON(http.StatusBadRequest, res.WithMessage(err.Error()))
 	case model.ErrObjectTypeNotFound:
 		return eCtx.JSON(http.StatusBadRequest, res.WithMessage(err.Error()))
-	case model.ErrUserNotFound:
-		return eCtx.JSON(http.StatusBadRequest, res.WithMessage(err.Error()))
+	case model.ErrUnauthorizeAccess:
+		return eCtx.JSON(http.StatusUnauthorized, res.WithMessage(err.Error()))
 	default:
 		return eCtx.JSON(http.StatusInternalServerError, res.WithMessage("internal server error"))
 	}
 
-	res.WithData(object)
+	res.WithData(object.ToHTTPResponse())
 	return eCtx.JSON(http.StatusCreated, res)
 }
 
@@ -75,12 +89,12 @@ func (t *ObjectController) GetPresignURL(eCtx echo.Context) (err error) {
 	case nil:
 	case model.ErrObjectNotFound:
 		return eCtx.JSON(http.StatusBadRequest, res.WithMessage(err.Error()))
-	case model.ErrUserNotFound:
-		return eCtx.JSON(http.StatusBadRequest, res.WithMessage(err.Error()))
+	case model.ErrUnauthorizeAccess:
+		return eCtx.JSON(http.StatusUnauthorized, res.WithMessage(err.Error()))
 	default:
 		return eCtx.JSON(http.StatusInternalServerError, res.WithMessage("internal server error"))
 	}
 
 	res.WithData(presignedObject.ToHTTPResponse())
-	return eCtx.JSON(http.StatusCreated, res)
+	return eCtx.JSON(http.StatusOK, res)
 }

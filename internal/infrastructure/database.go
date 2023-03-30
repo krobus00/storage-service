@@ -16,7 +16,6 @@ var (
 	StopTickerCh chan bool
 )
 
-// InitializeDBConn :nodoc:
 func InitializeDBConn() {
 	conn, err := openDBConn(config.DatabaseDSN())
 	if err != nil {
@@ -35,7 +34,6 @@ func InitializeDBConn() {
 		DB.Logger = DB.Logger.LogMode(gormLogger.Warn)
 	default:
 		DB.Logger = DB.Logger.LogMode(gormLogger.Info)
-
 	}
 
 	log.Info("Connection to database Server success...")
@@ -57,10 +55,10 @@ func checkConnection(ticker *time.Ticker) {
 
 func reconnectDBConn() {
 	b := backoff.Backoff{
-		Factor: 2,
+		Factor: float64(config.DatabaseConnReconnectFactor()),
 		Jitter: true,
-		Min:    100 * time.Millisecond,
-		Max:    1 * time.Second,
+		Min:    config.DatabaseConnReconnectMinJitter(),
+		Max:    config.DatabaseConnReconnectMaxJitter(),
 	}
 
 	dbRetryAttempts := config.DatabaseRetryAttempts()

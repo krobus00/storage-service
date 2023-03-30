@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"time"
 
 	authPB "github.com/krobus00/auth-service/pb/auth"
 	"github.com/krobus00/storage-service/internal/config"
@@ -47,13 +46,19 @@ func StartServer() {
 	continueOrFatal(err)
 	err = objectRepo.InjectS3Client(s3Client)
 	continueOrFatal(err)
+	err = objectRepo.InjectRedisClient(redisClient)
+	continueOrFatal(err)
 
 	objectTypeRepo := repository.NewObjectTypeRepository()
 	err = objectTypeRepo.InjectDB(infrastructure.DB)
 	continueOrFatal(err)
+	err = objectTypeRepo.InjectRedisClient(redisClient)
+	continueOrFatal(err)
 
 	objectWhitelistTypeRepo := repository.NewObjectWhitelistTypeRepository()
 	err = objectWhitelistTypeRepo.InjectDB(infrastructure.DB)
+	continueOrFatal(err)
+	err = objectWhitelistTypeRepo.InjectRedisClient(redisClient)
 	continueOrFatal(err)
 
 	// init usecase
@@ -68,12 +73,12 @@ func StartServer() {
 	continueOrFatal(err)
 
 	// init delivery layer
-	// ini http
+	// init http
 	objectCtrl := http.NewObjectController()
 	err = objectCtrl.InjectObjectUsecase(objectUsecase)
 	continueOrFatal(err)
 
-	httpDelivery := http.NewHTTPDelivery()
+	httpDelivery := http.NewDelivery()
 	err = httpDelivery.InjectEcho(echo)
 	continueOrFatal(err)
 	err = httpDelivery.InjectObjectController(objectCtrl)
@@ -81,7 +86,7 @@ func StartServer() {
 	httpDelivery.InitRoutes()
 
 	// init grpc
-	grpcDelivery := grpcServer.NewGRPCServer()
+	grpcDelivery := grpcServer.NewDelivery()
 	err = grpcDelivery.InjectObjectUsecase(objectUsecase)
 	continueOrFatal(err)
 
@@ -103,7 +108,7 @@ func StartServer() {
 	}()
 	log.Info(fmt.Sprintf("grpc server started on :%s", config.GRPCport()))
 
-	wait := gracefulShutdown(context.Background(), 30*time.Second, map[string]operation{
+	wait := gracefulShutdown(context.Background(), config.GracefulShutdownTimeOut(), map[string]operation{
 		"redis connection": func(ctx context.Context) error {
 			return redisClient.Close()
 		},

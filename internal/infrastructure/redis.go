@@ -5,7 +5,7 @@ import (
 	"github.com/krobus00/storage-service/internal/config"
 )
 
-// NewRedisClient create redis db connection
+// NewRedisClient create redis db connection.
 func NewRedisClient() (*goredis.Client, error) {
 	redisURL, err := goredis.ParseURL(config.RedisCacheHost())
 	if err != nil {
