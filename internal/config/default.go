@@ -18,4 +18,9 @@ const (
 	DefaultRedisWriteTimeout = 2 * time.Second
 	DefaultRedisReadTimeout  = 2 * time.Second
 	DefaultRedisCacheTTL     = 15 * time.Minute
+
+	DefaultS3SignDuration = 1 * time.Hour
+
+	DefaultJetstreamMaxPending = 256
+	DefaultJetstreamMaxAge     = 24 * time.Hour
 )

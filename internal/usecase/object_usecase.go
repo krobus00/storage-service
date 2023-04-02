@@ -5,13 +5,16 @@ import (
 	"context"
 	"mime"
 	"net/http"
+	"sync"
 
+	"github.com/krobus00/storage-service/internal/config"
 	"github.com/krobus00/storage-service/internal/constant"
 	"github.com/krobus00/storage-service/internal/model"
+	"github.com/nats-io/nats.go"
 
 	authPB "github.com/krobus00/auth-service/pb/auth"
 	"github.com/krobus00/storage-service/internal/utils"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type objectUsecase struct {
@@ -19,14 +22,33 @@ type objectUsecase struct {
 	objectTypeRepo          model.ObjectTypeRepository
 	ObjectWhitelistTypeRepo model.ObjectWhitelistTypeRepository
 	authClient              authPB.AuthServiceClient
+	jsClient                nats.JetStreamContext
 }
 
 func NewObjectUsecase() model.ObjectUsecase {
 	return new(objectUsecase)
 }
 
+func (uc *objectUsecase) CreateStream() error {
+	stream, _ := uc.jsClient.StreamInfo(model.ObjectStreamName)
+	// stream not found, create it
+	if stream == nil {
+		logrus.Printf("Creating stream: %s\n", model.ObjectStreamName)
+
+		_, err := uc.jsClient.AddStream(&nats.StreamConfig{
+			Name:     model.ObjectStreamName,
+			Subjects: []string{model.ObjectStreamSubjects},
+			MaxAge:   config.JetstreamMaxAge(),
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (uc *objectUsecase) Upload(ctx context.Context, payload *model.ObjectPayload) (*model.Object, error) {
-	logger := log.WithFields(log.Fields{
+	logger := logrus.WithFields(logrus.Fields{
 		"objectKey": payload.Object.Key,
 		"fileName":  payload.Object.FileName,
 		"isPublic":  payload.Object.IsPublic,
@@ -78,7 +100,7 @@ func (uc *objectUsecase) Upload(ctx context.Context, payload *model.ObjectPayloa
 }
 
 func (uc *objectUsecase) GeneratePresignedURL(ctx context.Context, payload *model.GetPresignedURLPayload) (*model.GetPresignedURLResponse, error) {
-	logger := log.WithFields(log.Fields{
+	logger := logrus.WithFields(logrus.Fields{
 		"objectID": payload.ObjectID,
 	})
 
@@ -115,6 +137,48 @@ func (uc *objectUsecase) GeneratePresignedURL(ctx context.Context, payload *mode
 	}
 
 	return presignedObject, nil
+}
+
+func (uc *objectUsecase) DeleteObject(ctx context.Context, id string) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"objectID": id,
+	})
+
+	object, err := uc.objectRepo.FindByID(ctx, id)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	if object == nil {
+		return model.ErrObjectNotFound
+	}
+
+	err = uc.objectRepo.DeleteByID(ctx, id)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	jsPayload := model.JSDeleteObjectPayload{
+		ObjectID: object.ID,
+	}
+
+	wg := sync.WaitGroup{}
+	for _, subject := range model.ObjectDeleteStreamSubjects {
+		wg.Add(1)
+		go func(subject string) {
+			defer wg.Done()
+			err = publishJS(ctx, uc.jsClient, subject, jsPayload)
+			if err != nil {
+				logger.Error(err.Error())
+			}
+		}(subject)
+	}
+
+	wg.Wait()
+
+	return nil
 }
 
 func (uc *objectUsecase) hasAccess(ctx context.Context, object *model.Object) error {

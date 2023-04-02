@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,7 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	StorageService_GetObjectByID_FullMethodName = "/pb.storage.StorageService/GetObjectByID"
+	StorageService_GetObjectByID_FullMethodName    = "/pb.storage.StorageService/GetObjectByID"
+	StorageService_DeleteObjectByID_FullMethodName = "/pb.storage.StorageService/DeleteObjectByID"
 )
 
 // StorageServiceClient is the client API for StorageService service.
@@ -27,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
 	GetObjectByID(ctx context.Context, in *GetObjectByIDRequest, opts ...grpc.CallOption) (*Object, error)
+	DeleteObjectByID(ctx context.Context, in *DeleteObjectByIDRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type storageServiceClient struct {
@@ -46,11 +49,21 @@ func (c *storageServiceClient) GetObjectByID(ctx context.Context, in *GetObjectB
 	return out, nil
 }
 
+func (c *storageServiceClient) DeleteObjectByID(ctx context.Context, in *DeleteObjectByIDRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, StorageService_DeleteObjectByID_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StorageServiceServer is the server API for StorageService service.
 // All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility
 type StorageServiceServer interface {
 	GetObjectByID(context.Context, *GetObjectByIDRequest) (*Object, error)
+	DeleteObjectByID(context.Context, *DeleteObjectByIDRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedStorageServiceServer()
 }
 
@@ -60,6 +73,9 @@ type UnimplementedStorageServiceServer struct {
 
 func (UnimplementedStorageServiceServer) GetObjectByID(context.Context, *GetObjectByIDRequest) (*Object, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObjectByID not implemented")
+}
+func (UnimplementedStorageServiceServer) DeleteObjectByID(context.Context, *DeleteObjectByIDRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteObjectByID not implemented")
 }
 func (UnimplementedStorageServiceServer) mustEmbedUnimplementedStorageServiceServer() {}
 
@@ -92,6 +108,24 @@ func _StorageService_GetObjectByID_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StorageService_DeleteObjectByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteObjectByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).DeleteObjectByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageService_DeleteObjectByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).DeleteObjectByID(ctx, req.(*DeleteObjectByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StorageService_ServiceDesc is the grpc.ServiceDesc for StorageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +136,10 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetObjectByID",
 			Handler:    _StorageService_GetObjectByID_Handler,
+		},
+		{
+			MethodName: "DeleteObjectByID",
+			Handler:    _StorageService_DeleteObjectByID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

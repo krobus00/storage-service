@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	auth "github.com/krobus00/auth-service/pb/auth"
 	model "github.com/krobus00/storage-service/internal/model"
+	nats "github.com/nats-io/nats.go"
 )
 
 // MockObjectUsecase is a mock of ObjectUsecase interface.
@@ -34,6 +35,34 @@ func NewMockObjectUsecase(ctrl *gomock.Controller) *MockObjectUsecase {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockObjectUsecase) EXPECT() *MockObjectUsecaseMockRecorder {
 	return m.recorder
+}
+
+// CreateStream mocks base method.
+func (m *MockObjectUsecase) CreateStream() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateStream")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateStream indicates an expected call of CreateStream.
+func (mr *MockObjectUsecaseMockRecorder) CreateStream() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateStream", reflect.TypeOf((*MockObjectUsecase)(nil).CreateStream))
+}
+
+// DeleteObject mocks base method.
+func (m *MockObjectUsecase) DeleteObject(arg0 context.Context, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteObject", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteObject indicates an expected call of DeleteObject.
+func (mr *MockObjectUsecaseMockRecorder) DeleteObject(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockObjectUsecase)(nil).DeleteObject), arg0, arg1)
 }
 
 // GeneratePresignedURL mocks base method.
@@ -63,6 +92,20 @@ func (m *MockObjectUsecase) InjectAuthClient(arg0 auth.AuthServiceClient) error 
 func (mr *MockObjectUsecaseMockRecorder) InjectAuthClient(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InjectAuthClient", reflect.TypeOf((*MockObjectUsecase)(nil).InjectAuthClient), arg0)
+}
+
+// InjectJetstreamClient mocks base method.
+func (m *MockObjectUsecase) InjectJetstreamClient(arg0 nats.JetStreamContext) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InjectJetstreamClient", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InjectJetstreamClient indicates an expected call of InjectJetstreamClient.
+func (mr *MockObjectUsecaseMockRecorder) InjectJetstreamClient(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InjectJetstreamClient", reflect.TypeOf((*MockObjectUsecase)(nil).InjectJetstreamClient), arg0)
 }
 
 // InjectObjectRepo mocks base method.

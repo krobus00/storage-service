@@ -10,6 +10,27 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	serviceName    = ""
+	serviceVersion = ""
+)
+
+func ServiceName() string {
+	return serviceName
+}
+
+func ServiceVersion() string {
+	return serviceVersion
+}
+
+func DurableID() string {
+	return fmt.Sprintf("%s-durable", serviceName)
+}
+
+func QueueGroup() string {
+	return fmt.Sprintf("%s-queue-group", serviceName)
+}
+
 func Env() string {
 	return viper.GetString("env")
 }
@@ -165,7 +186,7 @@ func GetS3SecretKey() string {
 
 func GetS3SignDuration() time.Duration {
 	cfg := viper.GetString("s3.sign_duration")
-	return parseDuration(cfg, 1*time.Hour)
+	return parseDuration(cfg, DefaultS3SignDuration)
 }
 
 func GetS3Credential() *credentials.StaticCredentialsProvider {
@@ -176,6 +197,22 @@ func GetS3Credential() *credentials.StaticCredentialsProvider {
 		return &credentials
 	}
 	return nil
+}
+
+func JetstreamHost() string {
+	return viper.GetString("js.host")
+}
+
+func JetstreamMaxPending() int {
+	if viper.GetInt("js.max_pending") <= 0 {
+		return DefaultJetstreamMaxPending
+	}
+	return viper.GetInt("js.max_pending")
+}
+
+func JetstreamMaxAge() time.Duration {
+	cfg := viper.GetString("js.max_age")
+	return parseDuration(cfg, DefaultJetstreamMaxAge)
 }
 
 func AuthGRPCHost() string {
