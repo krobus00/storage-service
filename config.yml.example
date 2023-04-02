@@ -6,7 +6,7 @@ ports:
 database:
   host: "localhost:5432"
   database: "storage_service"
-  username: "krobus"
+  username: "root"
   password: 'strongpassword'
   sslmode: "disable"
   max_idle_conns: 2
@@ -14,7 +14,7 @@ database:
   ping_interval: "5s"
   retry_attempts: 3
 redis:
-  cache_host: "redis://localhost:6379/1"
+  cache_host: "redis://:WPpJFYGPV1@localhost:6379/1"
   dial_timeout: 5
   write_timeout: 2
   read_timeout: 2
@@ -26,6 +26,10 @@ s3:
   access_key: "xxx"
   secret_key: "xxxx"
   sign_duration: "1h"
+js:
+  host: "nats://127.0.0.1:4222"
+  max_pending: 256
+  max_age: "24h"
 services:
   auth:
-    grpc: "localhost:5000" 
+    grpc: "localhost:5000"
