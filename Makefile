@@ -7,7 +7,7 @@ VERSION?= $(shell git describe --match 'v[0-9]*' --tags --always)
 DOCKER_IMAGE_NAME=krobus00/${SERVICE_NAME}
 CONFIG?=./config.yml
 NAMESPACE?=default
-PROJECT_REPO=github.com/krobus00/${SERVICE_NAME}
+PACKAGE_NAME=github.com/krobus00/${SERVICE_NAME}
 MIGRATION_ACTION?="up"
 MIGRATION_NAME?=""
 MIGRATION_STEP?="999"
@@ -23,7 +23,7 @@ clean-up-mock:
 
 
 pb/storage/mock/mock_storage_service_client.go:
-	mockgen -destination=pb/storage/mock/mock_storage_service_client.go -package=mock ${PROJECT_REPO}/pb/storage StorageServiceClient
+	mockgen -destination=pb/storage/mock/mock_storage_service_client.go -package=mock ${PACKAGE_NAME}/pb/storage StorageServiceClient
 
 # make generate
 generate: clean-up-mock pb/storage/mock/mock_storage_service_client.go
@@ -51,10 +51,10 @@ lint:
 run:
 ifeq (dev server, $(filter dev server,$(MAKECMDGOALS)))
 	$(eval launch_args=server $(launch_args))
-	air --build.cmd 'go build -ldflags "-s -w -X main.version=$(VERSION) -X main.name=$(SERVICE_NAME)" -o bin/storage-service main.go' --build.bin "./bin/storage-service $(launch_args)"
+	air --build.cmd 'go build -ldflags "-s -w -X $(PACKAGE_NAME)/internal/config.serviceVersion=$(VERSION) -X $(PACKAGE_NAME)/internal/config.serviceName=$(SERVICE_NAME)" -o bin/product-service main.go' --build.bin "./bin/product-service $(launch_args)"
 else ifeq (dev worker, $(filter dev worker,$(MAKECMDGOALS)))
 	$(eval launch_args=worker $(launch_args))
-	air --build.cmd 'go build -ldflags "-s -w -X main.version=$(VERSION) -X main.name=$(SERVICE_NAME)" -o bin/storage-service main.go' --build.bin "./bin/storage-service $(launch_args)"
+	air --build.cmd 'go build -ldflags "-s -w -X $(PACKAGE_NAME)/internal/config.serviceVersion=$(VERSION) -X $(PACKAGE_NAME)/internal/config.serviceName=$(SERVICE_NAME)" -o bin/product-service main.go' --build.bin "./bin/product-service $(launch_args)"
 else ifeq (worker, $(filter worker,$(MAKECMDGOALS)))
 	$(eval launch_args=worker $(launch_args))
 	$(shell if test -s ./bin/storage-service; then ./bin/storage-service $(launch_args); else echo storage binary not found; fi)
@@ -70,7 +70,7 @@ endif
 # make build
 build:
 	# build binary file
-	go build -ldflags "-s -w -X main.version=$(VERSION) -X main.name=$(SERVICE_NAME)" -o ./bin/storage-service ./main.go
+	go build -ldflags "-s -w -X $(PACKAGE_NAME)/internal/config.serviceVersion=$(VERSION) -X $(PACKAGE_NAME)/internal/config.serviceName=$(SERVICE_NAME)" -o ./bin/storage-service ./main.go
 ifeq (, $(shell which upx))
 	$(warning "upx not installed")
 else
@@ -117,7 +117,7 @@ else
 endif
 
 # make changelog VERSION=vx.x.x
-changelog:
+changelog: generate
 	git-chglog -o CHANGELOG.md --next-tag $(VERSION)
 
 %:
