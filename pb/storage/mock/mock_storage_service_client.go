@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	storage "github.com/krobus00/storage-service/pb/storage"
 	grpc "google.golang.org/grpc"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // MockStorageServiceClient is a mock of StorageServiceClient interface.
@@ -34,6 +35,26 @@ func NewMockStorageServiceClient(ctrl *gomock.Controller) *MockStorageServiceCli
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockStorageServiceClient) EXPECT() *MockStorageServiceClientMockRecorder {
 	return m.recorder
+}
+
+// DeleteObjectByID mocks base method.
+func (m *MockStorageServiceClient) DeleteObjectByID(arg0 context.Context, arg1 *storage.DeleteObjectByIDRequest, arg2 ...grpc.CallOption) (*emptypb.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteObjectByID", varargs...)
+	ret0, _ := ret[0].(*emptypb.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteObjectByID indicates an expected call of DeleteObjectByID.
+func (mr *MockStorageServiceClientMockRecorder) DeleteObjectByID(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObjectByID", reflect.TypeOf((*MockStorageServiceClient)(nil).DeleteObjectByID), varargs...)
 }
 
 // GetObjectByID mocks base method.

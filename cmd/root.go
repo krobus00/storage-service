@@ -13,13 +13,8 @@ import (
 // rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "storage-service",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "storage-service",
+	Long:  "storage-service",
 	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
@@ -30,9 +25,10 @@ func Execute() {
 	}
 }
 
-func Init(name, version string) {
-	log.Info(fmt.Sprintf("starting %s:%s ...", name, version))
+func Init() {
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalln(err.Error())
 	}
+
+	log.Info(fmt.Sprintf("starting %s:%s...", config.ServiceName(), config.ServiceVersion()))
 }

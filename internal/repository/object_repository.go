@@ -20,6 +20,7 @@ import (
 	"github.com/krobus00/storage-service/internal/utils"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type objectRepository struct {
@@ -135,7 +136,7 @@ func (r *objectRepository) FindByID(ctx context.Context, id string) (*model.Obje
 
 func (r *objectRepository) GeneratePresignedURL(ctx context.Context, object *model.Object) (*model.GetPresignedURLResponse, error) {
 	logger := logrus.WithFields(logrus.Fields{
-		"i":    object.ID,
+		"id":   object.ID,
 		"key":  object.Key,
 		"type": object.Type,
 	})
@@ -184,4 +185,25 @@ func (r *objectRepository) GeneratePresignedURL(ctx context.Context, object *mod
 	}
 
 	return data, nil
+}
+
+func (r *objectRepository) DeleteByID(ctx context.Context, id string) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"id": id,
+	})
+
+	db := utils.GetTxFromContext(ctx, r.db)
+
+	object := new(model.Object)
+
+	err := db.WithContext(ctx).Clauses(clause.Returning{}).
+		Where("id = ?", id).Delete(object).Error
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
+	_ = DeleteByKeys(ctx, r.redisClient, model.GetObjectCacheKeys(id))
+
+	return nil
 }

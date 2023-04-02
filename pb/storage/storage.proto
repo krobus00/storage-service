@@ -18,3 +18,8 @@ message GetObjectByIDRequest {
   string user_id = 1;
   string object_id = 2;
 }
+
+message DeleteObjectByIDRequest {
+  string user_id = 1;
+  string object_id = 2;
+}

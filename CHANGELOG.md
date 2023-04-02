@@ -1,8 +1,22 @@
 
+<a name="v0.4.0"></a>
+## [v0.4.0](https://github.com/krobus00/storage-service/compare/v0.3.0...v0.4.0)
+
+> 2023-04-03
+
+### Feature
+
+* add publish delete event ([#6](https://github.com/krobus00/storage-service/issues/6))
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0](https://github.com/krobus00/storage-service/compare/v0.2.2...v0.3.0)
 
 > 2023-03-30
+
+### Bump
+
+* update changelog
 
 ### Test
 

@@ -8,6 +8,7 @@ import (
 	authPB "github.com/krobus00/auth-service/pb/auth"
 	"github.com/krobus00/storage-service/internal/config"
 	"github.com/krobus00/storage-service/internal/infrastructure"
+	"github.com/krobus00/storage-service/internal/model"
 	"github.com/krobus00/storage-service/internal/repository"
 	grpcServer "github.com/krobus00/storage-service/internal/transport/grpc"
 	"github.com/krobus00/storage-service/internal/transport/http"
@@ -31,6 +32,9 @@ func StartServer() {
 	continueOrFatal(err)
 
 	s3Client, err := infrastructure.NewS3Client()
+	continueOrFatal(err)
+
+	nc, js, err := infrastructure.NewJetstreamClient()
 	continueOrFatal(err)
 
 	echo := infrastructure.NewEcho()
@@ -71,6 +75,18 @@ func StartServer() {
 	continueOrFatal(err)
 	err = objectUsecase.InjectAuthClient(authClient)
 	continueOrFatal(err)
+	err = objectUsecase.InjectJetstreamClient(js)
+	continueOrFatal(err)
+
+	// init stream
+	publisherUsecase := []model.PublisherUsecase{
+		objectUsecase,
+	}
+
+	for _, uc := range publisherUsecase {
+		err = uc.CreateStream()
+		continueOrFatal(err)
+	}
 
 	// init delivery layer
 	// init http
@@ -121,6 +137,9 @@ func StartServer() {
 		},
 		"grpc": func(ctx context.Context) error {
 			return lis.Close()
+		},
+		"nats connection": func(ctx context.Context) error {
+			return nc.Drain()
 		},
 	})
 

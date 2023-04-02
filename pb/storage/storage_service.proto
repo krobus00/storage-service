@@ -4,7 +4,9 @@ package pb.storage;
 option go_package = "pb/storage";
 
 import "pb/storage/storage.proto";
+import "google/protobuf/empty.proto";
 
 service StorageService {
 	rpc GetObjectByID(GetObjectByIDRequest) returns (Object) {}
+  rpc DeleteObjectByID(DeleteObjectByIDRequest) returns (google.protobuf.Empty) {}
 }

@@ -2,9 +2,13 @@ package usecase
 
 import (
 	"context"
+
 	"fmt"
 
+	"github.com/goccy/go-json"
+
 	authPB "github.com/krobus00/auth-service/pb/auth"
+	"github.com/nats-io/nats.go"
 
 	"github.com/krobus00/storage-service/internal/constant"
 	"github.com/krobus00/storage-service/internal/model"
@@ -39,4 +43,22 @@ func hasAccess(ctx context.Context, authClient authPB.AuthServiceClient, permiss
 		return nil
 	}
 	return model.ErrUnauthorizeAccess
+}
+
+func publishJS(ctx context.Context, jsClient nats.JetStreamContext, subjectName string, data any) error {
+	payload, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	_, err = jsClient.Publish(
+		subjectName,
+		payload,
+		nats.Context(ctx),
+	)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -14,15 +14,23 @@ import (
 	"github.com/go-redis/redis/v8"
 	authPB "github.com/krobus00/auth-service/pb/auth"
 	pb "github.com/krobus00/storage-service/pb/storage"
+	"github.com/nats-io/nats.go"
 	"gorm.io/gorm"
 )
 
 const (
+	ObjectStreamName     = "OBJECTS"
+	ObjectStreamSubjects = "OBJECTS.*"
+
 	DefaultPath = "DEFAULT-PATH"
 )
 
 var (
 	ErrObjectNotFound = errors.New("object not found")
+
+	ObjectDeleteStreamSubjects = []string{
+		"PRODUCTS.thumbnailDeleted",
+	}
 )
 
 type Object struct {
@@ -210,6 +218,7 @@ type ObjectRepository interface {
 	Create(ctx context.Context, data *ObjectPayload) error
 	FindByID(ctx context.Context, id string) (*Object, error)
 	GeneratePresignedURL(ctx context.Context, object *Object) (*GetPresignedURLResponse, error)
+	DeleteByID(ctx context.Context, id string) error
 
 	// DI
 	InjectS3Client(client S3Client) error
@@ -220,10 +229,15 @@ type ObjectRepository interface {
 type ObjectUsecase interface {
 	Upload(ctx context.Context, payload *ObjectPayload) (*Object, error)
 	GeneratePresignedURL(ctx context.Context, payload *GetPresignedURLPayload) (*GetPresignedURLResponse, error)
+	DeleteObject(ctx context.Context, id string) error
 
 	// DI
 	InjectObjectRepo(repo ObjectRepository) error
 	InjectObjectTypeRepo(repo ObjectTypeRepository) error
 	InjectObjectWhitelistTypeRepo(repo ObjectWhitelistTypeRepository) error
 	InjectAuthClient(client authPB.AuthServiceClient) error
+	InjectJetstreamClient(client nats.JetStreamContext) error
+
+	// Jetstream
+	CreateStream() error
 }
