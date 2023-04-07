@@ -23,6 +23,10 @@ func NewObjectTypeRepository() model.ObjectTypeRepository {
 }
 
 func (r *objectTypeRepository) Create(ctx context.Context, objectType *model.ObjectType) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id":   objectType.ID,
 		"name": objectType.Name,
@@ -42,6 +46,10 @@ func (r *objectTypeRepository) Create(ctx context.Context, objectType *model.Obj
 }
 
 func (r *objectTypeRepository) FindByID(ctx context.Context, id string) (*model.ObjectType, error) {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id": id,
 	})
@@ -82,6 +90,10 @@ func (r *objectTypeRepository) FindByID(ctx context.Context, id string) (*model.
 }
 
 func (r *objectTypeRepository) FindByName(ctx context.Context, name string) (*model.ObjectType, error) {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"name": name,
 	})
@@ -122,6 +134,10 @@ func (r *objectTypeRepository) FindByName(ctx context.Context, name string) (*mo
 }
 
 func (r *objectTypeRepository) DeleteByID(ctx context.Context, id string) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id": id,
 	})

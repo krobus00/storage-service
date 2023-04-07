@@ -34,6 +34,10 @@ func NewObjectRepository() model.ObjectRepository {
 }
 
 func (r *objectRepository) uploadToS3(ctx context.Context, data *model.ObjectPayload) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id":  data.Object.ID,
 		"key": data.Object.Key,
@@ -70,6 +74,10 @@ func (r *objectRepository) uploadToS3(ctx context.Context, data *model.ObjectPay
 }
 
 func (r *objectRepository) Create(ctx context.Context, data *model.ObjectPayload) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id":  data.Object.ID,
 		"key": data.Object.Key,
@@ -94,6 +102,10 @@ func (r *objectRepository) Create(ctx context.Context, data *model.ObjectPayload
 }
 
 func (r *objectRepository) FindByID(ctx context.Context, id string) (*model.Object, error) {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id": id,
 	})
@@ -135,6 +147,10 @@ func (r *objectRepository) FindByID(ctx context.Context, id string) (*model.Obje
 }
 
 func (r *objectRepository) GeneratePresignedURL(ctx context.Context, object *model.Object) (*model.GetPresignedURLResponse, error) {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id":   object.ID,
 		"key":  object.Key,
@@ -188,6 +204,10 @@ func (r *objectRepository) GeneratePresignedURL(ctx context.Context, object *mod
 }
 
 func (r *objectRepository) DeleteByID(ctx context.Context, id string) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"id": id,
 	})

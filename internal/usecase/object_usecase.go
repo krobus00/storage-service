@@ -48,6 +48,10 @@ func (uc *objectUsecase) CreateStream() error {
 }
 
 func (uc *objectUsecase) Upload(ctx context.Context, payload *model.ObjectPayload) (*model.Object, error) {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"objectKey": payload.Object.Key,
 		"fileName":  payload.Object.FileName,
@@ -100,6 +104,10 @@ func (uc *objectUsecase) Upload(ctx context.Context, payload *model.ObjectPayloa
 }
 
 func (uc *objectUsecase) GeneratePresignedURL(ctx context.Context, payload *model.GetPresignedURLPayload) (*model.GetPresignedURLResponse, error) {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"objectID": payload.ObjectID,
 	})
@@ -140,6 +148,10 @@ func (uc *objectUsecase) GeneratePresignedURL(ctx context.Context, payload *mode
 }
 
 func (uc *objectUsecase) DeleteObject(ctx context.Context, id string) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"objectID": id,
 	})
@@ -182,6 +194,10 @@ func (uc *objectUsecase) DeleteObject(ctx context.Context, id string) error {
 }
 
 func (uc *objectUsecase) hasAccess(ctx context.Context, object *model.Object) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	if object.IsPublic {
 		return nil
 	}
@@ -204,6 +220,10 @@ func (uc *objectUsecase) hasAccess(ctx context.Context, object *model.Object) er
 }
 
 func (uc *objectUsecase) validationObjectType(ctx context.Context, data []byte, typeID string) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	buf := bytes.NewBuffer(data)
 
 	contentType := http.DetectContentType(buf.Bytes())
