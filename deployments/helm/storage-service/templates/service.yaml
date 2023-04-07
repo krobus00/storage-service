@@ -5,9 +5,13 @@ metadata:
   labels:
     app: {{ .Values.app.name }}
     group: {{ .Values.app.group }}
+  annotations:
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "7000"
+    prometheus.io/scrape: "true"
 spec:
   type: {{ .Values.app.service.type }}
-  selector:             
+  selector:
     app: {{ .Values.app.name }}
   ports:
     - name: http
@@ -16,3 +20,6 @@ spec:
     - name: grpc
       port: {{ .Values.app.service.grpcPort }}
       targetPort: {{ .Values.app.container.ports.grpc }}
+    - name: metrics
+      port: {{ .Values.app.service.metricsPort }}
+      targetPort: {{ .Values.app.container.ports.metrics }}

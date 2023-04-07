@@ -23,6 +23,10 @@ func NewObjectWhitelistTypeRepository() model.ObjectWhitelistTypeRepository {
 }
 
 func (r *objectWhitelistTypeRepository) Create(ctx context.Context, objectWhitelistType *model.ObjectWhitelistType) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"typeID":    objectWhitelistType.TypeID,
 		"extension": objectWhitelistType.Extension,
@@ -41,6 +45,10 @@ func (r *objectWhitelistTypeRepository) Create(ctx context.Context, objectWhitel
 }
 
 func (r *objectWhitelistTypeRepository) FindByTypeIDAndExt(ctx context.Context, typeID string, ext string) (*model.ObjectWhitelistType, error) {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"typeID":    typeID,
 		"extension": ext,
@@ -84,6 +92,10 @@ func (r *objectWhitelistTypeRepository) FindByTypeIDAndExt(ctx context.Context, 
 }
 
 func (r *objectWhitelistTypeRepository) DeleteByTypeIDAndExt(ctx context.Context, typeID string, ext string) error {
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
+
 	logger := logrus.WithFields(logrus.Fields{
 		"typeID":    typeID,
 		"extension": ext,

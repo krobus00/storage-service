@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/krobus00/storage-service/internal/model"
+	"github.com/krobus00/storage-service/internal/utils"
 	"github.com/labstack/echo/v4"
 )
 
@@ -23,6 +24,10 @@ func (t *ObjectController) Upload(eCtx echo.Context) (err error) {
 		res = model.NewResponse()
 		req = new(model.HTTPFileUploadRequest)
 	)
+
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
 
 	err = eCtx.Bind(req)
 	if err != nil {
@@ -77,6 +82,10 @@ func (t *ObjectController) GetPresignURL(eCtx echo.Context) (err error) {
 		res = model.NewResponse()
 		req = new(model.HTTPGetPresignedURLRequest)
 	)
+
+	_, _, fn := utils.Trace()
+	ctx, span := utils.NewSpan(ctx, fn)
+	defer span.End()
 
 	err = eCtx.Bind(req)
 	if err != nil {
