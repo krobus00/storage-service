@@ -1,12 +1,30 @@
 
+<a name="v0.5.0"></a>
+## [v0.5.0](https://github.com/krobus00/storage-service/compare/v0.4.0...v0.5.0)
+
+> 2023-04-07
+
+### Feature
+
+* implement tracing ([#8](https://github.com/krobus00/storage-service/issues/8))
+
+
 <a name="v0.4.0"></a>
 ## [v0.4.0](https://github.com/krobus00/storage-service/compare/v0.3.0...v0.4.0)
 
 > 2023-04-03
 
+### Bump
+
+* update changelog
+
 ### Feature
 
 * add publish delete event ([#6](https://github.com/krobus00/storage-service/issues/6))
+
+### Release
+
+* v0.4.0 ([#7](https://github.com/krobus00/storage-service/issues/7))
 
 
 <a name="v0.3.0"></a>
