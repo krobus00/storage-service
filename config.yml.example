@@ -33,3 +33,8 @@ js:
 services:
   auth:
     grpc: "localhost:5000"
+jaeger:
+  protocol: "http" # http|grpc
+  host: "localhost"
+  port: "14268" # 14268|6831
+  sample_rate: 1.0

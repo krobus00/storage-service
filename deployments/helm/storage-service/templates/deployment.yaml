@@ -25,6 +25,7 @@ spec:
           ports:
             - containerPort: {{ .Values.app.container.ports.http }}
             - containerPort: {{ .Values.app.container.ports.grpc }}
+            - containerPort: {{ .Values.app.container.ports.metrics }}
           volumeMounts:
             - name: {{ .Values.app.name }}-config
               mountPath: /app/config.yml

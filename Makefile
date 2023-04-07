@@ -62,7 +62,7 @@ else ifeq (server, $(filter server,$(MAKECMDGOALS)))
 	$(eval launch_args=server $(launch_args))
 	$(shell if test -s ./bin/storage-service; then ./bin/storage-service $(launch_args); else echo storage binary not found; fi)
 else ifeq (migration, $(filter migration,$(MAKECMDGOALS)))
-	$(shell if ! test -s ./bin/auth-service; then go build -ldflags "-s -w -X main.version=$(VERSION) -X main.name=$(SERVICE_NAME)"  -o ./bin/storage-service ./main.go; fi)
+	$(shell if ! test -s ./bin/storage-service; then go build -ldflags "-s -w -X main.version=$(VERSION) -X main.name=$(SERVICE_NAME)"  -o ./bin/storage-service ./main.go; fi)
 	$(eval launch_args=migration --action $(MIGRATION_ACTION) --name $(MIGRATION_NAME) --step $(MIGRATION_STEP) $(launch_args))
 	./bin/storage-service $(launch_args)
 endif
@@ -93,7 +93,7 @@ docker-build-push: image push-image
 # make deploy VERSION="vx.x.x" NAMESPACE="staging"
 # make deploy VERSION="vx.x.x" NAMESPACE="staging" CONFIG="./config-staging.yml"
 deploy:
-	@helm upgrade --install storage-service ./deployments/helm/server-storage-service --set-file appConfig="${CONFIG}" --set app.container.version="${VERSION}" -n ${NAMESPACE}
+	@helm upgrade --install storage-service ./deployments/helm/storage-service --set-file appConfig="${CONFIG}" --set app.container.version="${VERSION}" -n ${NAMESPACE}
 
 # make coverage
 coverage:
