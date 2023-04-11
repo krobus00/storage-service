@@ -276,28 +276,28 @@ func Test_objectUsecase_Upload(t *testing.T) {
 
 			if tt.mockHasAccess != nil {
 				authClientMock.EXPECT().
-					HasAccess(ctx, gomock.Any()).
+					HasAccess(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(tt.mockHasAccess.hasAccess, tt.mockHasAccess.err)
 			}
 
 			if tt.mockFindObjectType != nil {
 				objectTypeRepo.EXPECT().
-					FindByName(ctx, tt.args.payload.Object.Type).
+					FindByName(gomock.Any(), tt.args.payload.Object.Type).
 					Times(1).
 					Return(tt.mockFindObjectType.res, tt.mockFindObjectType.err)
 			}
 
 			if tt.mockFindByTypeIDAndExt != nil {
 				objectWhitelistTypeRepo.EXPECT().
-					FindByTypeIDAndExt(ctx, tt.mockFindObjectType.res.ID, gomock.Any()).
+					FindByTypeIDAndExt(gomock.Any(), tt.mockFindObjectType.res.ID, gomock.Any()).
 					Times(1).
 					Return(tt.mockFindByTypeIDAndExt.res, tt.mockFindByTypeIDAndExt.err)
 			}
 
 			if tt.mockCreate != nil {
 				objectRepo.EXPECT().
-					Create(ctx, gomock.Any()).
+					Create(gomock.Any(), gomock.Any()).
 					Times(1).
 					DoAndReturn(func(ctx context.Context, data *model.ObjectPayload) error {
 						data.Object = tt.mockCreate.res
@@ -653,7 +653,7 @@ func Test_objectUsecase_GeneratePresignedURL(t *testing.T) {
 
 			if tt.mockFindObjectByID != nil {
 				objectRepo.EXPECT().
-					FindByID(ctx, tt.args.payload.ObjectID).
+					FindByID(gomock.Any(), tt.args.payload.ObjectID).
 					Times(1).
 					Return(tt.mockFindObjectByID.res, tt.mockFindObjectByID.err)
 
@@ -661,7 +661,7 @@ func Test_objectUsecase_GeneratePresignedURL(t *testing.T) {
 				if object != nil {
 					if tt.mockHasAccess != nil && !object.IsPublic && object.UploadedBy != tt.args.userID {
 						authClientMock.EXPECT().
-							HasAccess(ctx, gomock.Any()).
+							HasAccess(gomock.Any(), gomock.Any()).
 							Times(1).
 							Return(tt.mockHasAccess.hasAccess, tt.mockHasAccess.err)
 					}
@@ -670,14 +670,14 @@ func Test_objectUsecase_GeneratePresignedURL(t *testing.T) {
 
 			if tt.mockFindObjectType != nil {
 				objectTypeRepo.EXPECT().
-					FindByID(ctx, tt.mockFindObjectByID.res.TypeID).
+					FindByID(gomock.Any(), tt.mockFindObjectByID.res.TypeID).
 					Times(1).
 					Return(tt.mockFindObjectType.res, tt.mockFindObjectType.err)
 			}
 
 			if tt.mockGeneratePresignedURL != nil {
 				objectRepo.EXPECT().
-					GeneratePresignedURL(ctx, tt.mockFindObjectByID.res).
+					GeneratePresignedURL(gomock.Any(), tt.mockFindObjectByID.res).
 					Times(1).
 					Return(tt.mockGeneratePresignedURL.res, tt.mockGeneratePresignedURL.err)
 			}

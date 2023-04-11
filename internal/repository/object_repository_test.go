@@ -151,7 +151,7 @@ func Test_objectRepository_Create(t *testing.T) {
 
 			if tt.mockPutObject != nil {
 				s3Client.EXPECT().
-					PutObject(ctx, gomock.Any()).
+					PutObject(gomock.Any(), gomock.Any()).
 					Times(1).Return(tt.mockPutObject.res, tt.mockPutObject.err)
 			}
 
@@ -448,7 +448,7 @@ func Test_objectRepository_GeneratePresignedURL(t *testing.T) {
 
 			if tt.mockPresignGetObject != nil {
 				s3Client.EXPECT().
-					PresignGetObject(ctx, gomock.Any()).
+					PresignGetObject(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(tt.mockPresignGetObject.res, tt.mockPresignGetObject.err)
 			}
