@@ -42,9 +42,9 @@ func getUserIDFromCtx(ctx context.Context) string {
 	return userID
 }
 
-func SanitizePayload(structa interface{}, censoredField map[string]bool) (res []byte, err error) {
-	value := reflect.ValueOf(structa).Elem()
-	typeSt := reflect.TypeOf(structa)
+func SanitizePayload(payload interface{}, censoredField map[string]bool) (res []byte, err error) {
+	value := reflect.ValueOf(payload).Elem()
+	typeSt := reflect.TypeOf(payload)
 	size := value.NumField()
 
 	res = append(res, '{')
