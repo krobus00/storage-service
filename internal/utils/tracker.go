@@ -42,7 +42,7 @@ func getUserIDFromCtx(ctx context.Context) string {
 	return userID
 }
 
-func MarshalOnlyFields(structa interface{}, cencoredField map[string]bool) (res []byte, err error) {
+func SanitizePayload(structa interface{}, censoredField map[string]bool) (res []byte, err error) {
 	value := reflect.ValueOf(structa).Elem()
 	typeSt := reflect.TypeOf(structa)
 	size := value.NumField()
@@ -57,7 +57,7 @@ func MarshalOnlyFields(structa interface{}, cencoredField map[string]bool) (res 
 		}
 
 		fieldValue := "REDACTED"
-		if !cencoredField[fieldName] {
+		if !censoredField[fieldName] {
 			value, err := json.Marshal(structValue.Interface())
 			if err != nil {
 				return []byte{}, err
@@ -89,7 +89,7 @@ func NewSpan(ctx context.Context, fn string) (context.Context, trace.Span) {
 }
 
 func SetSpanBody(span trace.Span, raw any) {
-	body, err := MarshalOnlyFields(raw, constant.RedactedField)
+	body, err := SanitizePayload(raw, constant.RedactedField)
 	if err != nil {
 		return
 	}
