@@ -9,3 +9,8 @@ const (
 	SystemID = string("SYSTEM")
 	GuestID  = string("GUEST")
 )
+
+var RedactedField = map[string]bool{
+	"password": true,
+	"file":     true,
+}

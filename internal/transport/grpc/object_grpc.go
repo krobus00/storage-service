@@ -13,10 +13,10 @@ import (
 
 func (t *Delivery) GetObjectByID(ctx context.Context, req *pb.GetObjectByIDRequest) (*pb.Object, error) {
 	ctx = setUserIDCtx(ctx, req.GetUserId())
-
 	_, _, fn := utils.Trace()
 	ctx, span := utils.NewSpan(ctx, fn)
 	defer span.End()
+	utils.SetSpanBody(span, req)
 
 	presignedObject, err := t.objectUC.GeneratePresignedURL(ctx, &model.GetPresignedURLPayload{
 		ObjectID: req.GetObjectId(),
@@ -35,10 +35,10 @@ func (t *Delivery) GetObjectByID(ctx context.Context, req *pb.GetObjectByIDReque
 
 func (t *Delivery) DeleteObjectByID(ctx context.Context, req *pb.DeleteObjectByIDRequest) (*emptypb.Empty, error) {
 	ctx = setUserIDCtx(ctx, req.GetUserId())
-
 	_, _, fn := utils.Trace()
 	ctx, span := utils.NewSpan(ctx, fn)
 	defer span.End()
+	utils.SetSpanBody(span, req)
 
 	err := t.objectUC.DeleteObject(ctx, req.GetObjectId())
 
