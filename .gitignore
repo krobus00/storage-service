@@ -24,3 +24,5 @@ tmp
 bin
 
 config.yml
+!/.chglog/config.yml
+*.out

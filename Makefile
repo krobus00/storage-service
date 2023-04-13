@@ -85,7 +85,7 @@ ifeq (, $(shell which upx))
 	$(warning "upx not installed")
 else
 	# compress binary file if upx command exist
-	upx -9 ./bin/$(SERVICE_NAME)
+	upx --best --lzma ./bin/$(SERVICE_NAME)
 endif
 
 # make image VERSION="vx.x.x"
