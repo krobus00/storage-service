@@ -34,6 +34,7 @@ func (t *ObjectController) Upload(eCtx echo.Context) (err error) {
 		res = model.WithBadRequestResponse(nil)
 		return eCtx.JSON(http.StatusBadRequest, res)
 	}
+	utils.SetSpanBody(span, req)
 
 	req.Src, err = eCtx.FormFile("file")
 	if err != nil {

@@ -21,7 +21,7 @@ spec:
         - name: {{ .Values.app.name }}
           image: {{ .Values.app.container.image }}:{{ .Values.app.container.version }}
           imagePullPolicy: "Always"
-          command: ["/app/storage-service", "server"]
+          command: ["/app/bin/storage-service", "server"]
           ports:
             - containerPort: {{ .Values.app.container.ports.http }}
             - containerPort: {{ .Values.app.container.ports.grpc }}
