@@ -11,4 +11,5 @@ RUN make build
 FROM alpine:3.8
 WORKDIR /app
 COPY --from=base /builder/bin/storage-service /app/bin/storage-service
+COPY --from=base /builder/db /app/db
 CMD ["/app/bin/storage-service", "server"]

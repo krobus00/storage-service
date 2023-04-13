@@ -29,6 +29,7 @@ func Init() {
 	if err := config.LoadConfig(); err != nil {
 		log.Fatalln(err.Error())
 	}
-
 	log.Info(fmt.Sprintf("starting %s:%s...", config.ServiceName(), config.ServiceVersion()))
+	logLevel, _ := log.ParseLevel(config.LogLevel())
+	log.SetLevel(logLevel)
 }

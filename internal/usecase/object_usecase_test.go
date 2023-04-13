@@ -464,10 +464,6 @@ func Test_objectUsecase_GeneratePresignedURL(t *testing.T) {
 					ObjectID: objectID,
 				},
 			},
-			mockHasAccess: &mockHasAccess{
-				hasAccess: wrapperspb.Bool(true),
-				err:       nil,
-			},
 			mockFindObjectByID: &mockFindObjectByID{
 				res: &model.Object{
 					ID:         objectID,
@@ -656,16 +652,12 @@ func Test_objectUsecase_GeneratePresignedURL(t *testing.T) {
 					FindByID(gomock.Any(), tt.args.payload.ObjectID).
 					Times(1).
 					Return(tt.mockFindObjectByID.res, tt.mockFindObjectByID.err)
-
-				object := tt.mockFindObjectByID.res
-				if object != nil {
-					if tt.mockHasAccess != nil && !object.IsPublic && object.UploadedBy != tt.args.userID {
-						authClientMock.EXPECT().
-							HasAccess(gomock.Any(), gomock.Any()).
-							Times(1).
-							Return(tt.mockHasAccess.hasAccess, tt.mockHasAccess.err)
-					}
-				}
+			}
+			if tt.mockHasAccess != nil {
+				authClientMock.EXPECT().
+					HasAccess(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(tt.mockHasAccess.hasAccess, tt.mockHasAccess.err)
 			}
 
 			if tt.mockFindObjectType != nil {
