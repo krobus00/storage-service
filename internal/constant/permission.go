@@ -18,3 +18,34 @@ const (
 	PermissionObjectDelete      = "OBJECT_DELETE"
 	PermissionObjectModifyOther = "OBJECT_MODIFY_OTHER"
 )
+
+var (
+	SeedPermissions = []string{
+		PermissionFullAccess,
+		PermissionGuestAccess,
+		PermissionObjectAll,
+		PermissionObjectCreate,
+		PermissionObjectRead,
+		PermissionObjectReadPrivate,
+		PermissionObjectDelete,
+		PermissionObjectModifyOther,
+	}
+
+	SeedGroupPermissios = map[string][]string{
+		"DEFAULT": {
+			PermissionObjectCreate,
+			PermissionObjectRead,
+			PermissionObjectDelete,
+		},
+		"SUPER_USER": {
+			PermissionFullAccess,
+			PermissionGuestAccess,
+			PermissionObjectAll,
+			PermissionObjectCreate,
+			PermissionObjectRead,
+			PermissionObjectReadPrivate,
+			PermissionObjectDelete,
+			PermissionObjectModifyOther,
+		},
+	}
+)

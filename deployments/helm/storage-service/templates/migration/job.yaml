@@ -1,31 +1,25 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{ .Values.app.name }}-server
+  name: {{ .Values.app.name }}-migration
   labels:
-    app: {{ .Values.app.name }}-server
+    app: {{ .Values.app.name }}-migration
     group: {{ .Values.app.group }}
 spec:
-  replicas: {{ .Values.app.replicaCount }}
-  selector:
-    matchLabels:
-      app: {{ .Values.app.name }}-server
+  ttlSecondsAfterFinished: 100
   template:
     metadata:
       labels:
-        app: {{ .Values.app.name }}-server
+        app: {{ .Values.app.name }}-migration
         group: {{ .Values.app.group }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum | trunc 10}}
     spec:
+      restartPolicy: "Never"
       containers:
-        - name: {{ .Values.app.name }}
+        - name: {{ .Values.app.name }}-migration
           image: {{ .Values.app.container.image }}:{{ .Values.app.container.version }}
           imagePullPolicy: "Always"
-          command: ["/app/bin/storage-service", "server"]
-          ports:
-            - containerPort: {{ .Values.app.container.ports.http }}
-            - containerPort: {{ .Values.app.container.ports.grpc }}
-            - containerPort: {{ .Values.app.container.ports.metrics }}
+          command: ["/app/bin/storage-service", "migration", "--action", "up"]
           volumeMounts:
             - name: {{ .Values.app.name }}-config
               mountPath: /app/config.yml
