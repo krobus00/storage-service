@@ -90,7 +90,7 @@ endif
 
 # make image VERSION="vx.x.x"
 image:
-	docker buildx build -t ${DOCKER_IMAGE_NAME}:${VERSION} . -f ./deployments/Dockerfile
+	docker build -t ${DOCKER_IMAGE_NAME}:${VERSION} . -f ./deployments/Dockerfile
 
 # make push-image VERSION="vx.x.x"
 push-image:

@@ -239,6 +239,10 @@ func JaegerSampleRate() float64 {
 	return viper.GetFloat64("jaeger.sample_rate")
 }
 
+func DisableTracing() bool {
+	return viper.GetBool("jaeger.disable_tracing")
+}
+
 func parseDuration(in string, defaultDuration time.Duration) time.Duration {
 	dur, err := time.ParseDuration(in)
 	if err != nil {

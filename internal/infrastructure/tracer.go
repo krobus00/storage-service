@@ -14,6 +14,10 @@ import (
 )
 
 func JaegerTraceProvider() (tp *sdktrace.TracerProvider, err error) {
+	if config.DisableTracing() {
+		return nil, nil
+	}
+
 	var exp *jaeger.Exporter
 
 	jaegerURL := net.JoinHostPort(config.JaegerHost(), config.JaegerPort())

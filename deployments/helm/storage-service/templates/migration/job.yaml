@@ -6,7 +6,7 @@ metadata:
     app: {{ .Values.app.name }}-migration
     group: {{ .Values.app.group }}
 spec:
-  ttlSecondsAfterFinished: 100
+  ttlSecondsAfterFinished: 5
   template:
     metadata:
       labels:
