@@ -16,12 +16,12 @@ import (
 	"github.com/krobus00/storage-service/internal/usecase"
 	pb "github.com/krobus00/storage-service/pb/storage"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 )
 
 func StartServer() {
@@ -46,7 +46,12 @@ func StartServer() {
 	echo := infrastructure.NewEcho()
 
 	// init grpc client
-	authConn, err := grpc.Dial(config.AuthGRPCHost(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpcOpts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+	}
+
+	authConn, err := grpc.Dial(config.AuthGRPCHost(), grpcOpts...)
 	continueOrFatal(err)
 	authClient := authPB.NewAuthServiceClient(authConn)
 
@@ -122,12 +127,12 @@ func StartServer() {
 	go func() {
 		_ = storageGrpcServer.Serve(lis)
 	}()
-	log.Info(fmt.Sprintf("grpc server started on :%s", config.PortGRPC()))
+	logrus.Info(fmt.Sprintf("grpc server started on :%s", config.PortGRPC()))
 
 	go func() {
 		_ = echo.Start(":" + config.PortHTTP())
 	}()
-	log.Info(fmt.Sprintf("http server started on :%s", config.PortHTTP()))
+	logrus.Info(fmt.Sprintf("http server started on :%s", config.PortHTTP()))
 
 	http.Handle("/metrics", promhttp.Handler())
 
@@ -154,6 +159,9 @@ func StartServer() {
 			return nc.Drain()
 		},
 		"trace provider": func(ctx context.Context) error {
+			if config.DisableTracing() {
+				return nil
+			}
 			return tp.Shutdown(ctx)
 		},
 	})

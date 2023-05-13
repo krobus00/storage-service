@@ -27,6 +27,7 @@ func getUserIDFromCtx(ctx context.Context) string {
 func hasAccess(ctx context.Context, authClient authPB.AuthServiceClient, permissions []string) error {
 	userID := getUserIDFromCtx(ctx)
 
+	permissions = append(permissions, constant.PermissionFullAccess)
 	res, err := authClient.HasAccess(ctx, &authPB.HasAccessRequest{
 		UserId:      userID,
 		Permissions: permissions,

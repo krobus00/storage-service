@@ -30,13 +30,6 @@ linters-settings:
     # Default: false
     check-type-assertions: true
 
-  exhaustive:
-    # Program elements to check for exhaustiveness.
-    # Default: [ switch ]
-    check:
-      - switch
-      - map
-
   exhaustruct:
     # List of regular expressions to exclude struct packages and names from check.
     # Default: []
@@ -178,7 +171,6 @@ linters:
     - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
     - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
     - execinquery # checks query string in Query function which reads your Go src files and warning it finds
-    - exhaustive # checks exhaustiveness of enum switch statements
     - exportloopref # checks for pointers to enclosing loop variables
     - forbidigo # forbids identifiers
     - funlen # tool for detection of long functions

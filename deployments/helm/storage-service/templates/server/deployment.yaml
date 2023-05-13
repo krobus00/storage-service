@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.app.name }}
+  name: {{ .Values.app.name }}-server
   labels:
-    app: {{ .Values.app.name }}
+    app: {{ .Values.app.name }}-server
     group: {{ .Values.app.group }}
 spec:
   replicas: {{ .Values.app.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.app.name }}
+      app: {{ .Values.app.name }}-server
   template:
     metadata:
       labels:
-        app: {{ .Values.app.name }}
+        app: {{ .Values.app.name }}-server
         group: {{ .Values.app.group }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum | trunc 10}}
     spec:
@@ -21,7 +21,7 @@ spec:
         - name: {{ .Values.app.name }}
           image: {{ .Values.app.container.image }}:{{ .Values.app.container.version }}
           imagePullPolicy: "Always"
-          command: ["/app/storage-service", "server"]
+          command: ["/app/bin/storage-service", "server"]
           ports:
             - containerPort: {{ .Values.app.container.ports.http }}
             - containerPort: {{ .Values.app.container.ports.grpc }}

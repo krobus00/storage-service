@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app.name }}-migration
+  labels:
+    app: {{ .Values.app.name }}-migration
+    group: {{ .Values.app.group }}
+spec:
+  ttlSecondsAfterFinished: 5
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}-migration
+        group: {{ .Values.app.group }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum | trunc 10}}
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: {{ .Values.app.name }}-migration
+          image: {{ .Values.app.container.image }}:{{ .Values.app.container.version }}
+          imagePullPolicy: "Always"
+          command: ["/app/bin/storage-service", "migration", "--action", "up"]
+          volumeMounts:
+            - name: {{ .Values.app.name }}-config
+              mountPath: /app/config.yml
+              subPath: config.yml
+              readOnly: true
+      volumes:
+        - name: {{ .Values.app.name }}-config
+          configMap:
+            name: {{ .Values.app.name }}-configmap

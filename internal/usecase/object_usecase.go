@@ -3,6 +3,7 @@ package usecase
 import (
 	"bytes"
 	"context"
+	"errors"
 	"mime"
 	"net/http"
 	"sync"
@@ -60,11 +61,7 @@ func (uc *objectUsecase) Upload(ctx context.Context, payload *model.ObjectPayloa
 
 	userID := getUserIDFromCtx(ctx)
 
-	err := hasAccess(ctx, uc.authClient, []string{
-		constant.PermissionFullAccess,
-		constant.PermissionObjectAll,
-		constant.PermissionObjectCreate,
-	})
+	err := uc.hasAccess(ctx, constant.ActionCreate, nil)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -122,7 +119,7 @@ func (uc *objectUsecase) GeneratePresignedURL(ctx context.Context, payload *mode
 		return nil, model.ErrObjectNotFound
 	}
 
-	err = uc.hasAccess(ctx, object)
+	err = uc.hasAccess(ctx, constant.ActionRead, object)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -166,6 +163,12 @@ func (uc *objectUsecase) DeleteObject(ctx context.Context, id string) error {
 		return model.ErrObjectNotFound
 	}
 
+	err = uc.hasAccess(ctx, constant.ActionDelete, object)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+
 	err = uc.objectRepo.DeleteByID(ctx, id)
 	if err != nil {
 		logger.Error(err.Error())
@@ -193,30 +196,44 @@ func (uc *objectUsecase) DeleteObject(ctx context.Context, id string) error {
 	return nil
 }
 
-func (uc *objectUsecase) hasAccess(ctx context.Context, object *model.Object) error {
+func (uc *objectUsecase) hasAccess(ctx context.Context, action constant.ActionType, object *model.Object) error {
 	_, _, fn := utils.Trace()
 	ctx, span := utils.NewSpan(ctx, fn)
 	defer span.End()
 
-	if object.IsPublic {
-		return nil
-	}
 	userID := getUserIDFromCtx(ctx)
 
-	if object.UploadedBy == userID {
-		return nil
+	permissions := []string{
+		constant.PermissionObjectAll,
 	}
-	if !object.IsPublic {
-		err := hasAccess(ctx, uc.authClient, []string{
-			constant.PermissionFullAccess,
-			constant.PermissionObjectAll,
-			constant.PermissionObjectReadPrivate,
-		})
-		if err == nil {
+
+	switch action {
+	case constant.ActionCreate:
+		permissions = append(permissions, constant.PermissionObjectCreate)
+	case constant.ActionRead:
+		if object.IsPublic {
 			return nil
 		}
+		if !object.IsPublic && object.UploadedBy != userID {
+			permissions = append(permissions, constant.PermissionObjectReadPrivate)
+		} else {
+			permissions = append(permissions, constant.PermissionObjectRead)
+		}
+	case constant.ActionDelete:
+		if object.UploadedBy != userID {
+			permissions = append(permissions, constant.PermissionObjectModifyOther)
+		} else {
+			permissions = append(permissions, constant.PermissionObjectDelete)
+		}
+	default:
+		return errors.New("invaid action")
 	}
-	return model.ErrUnauthorizeAccess
+
+	err := hasAccess(ctx, uc.authClient, permissions)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (uc *objectUsecase) validationObjectType(ctx context.Context, data []byte, typeID string) error {
